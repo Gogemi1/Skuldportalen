@@ -321,6 +321,26 @@
   .budget-premium-text { font-size: 12px; color: var(--amber-dark); font-weight: 300; line-height: 1.5; margin-bottom: 12px; }
   @media (max-width: 760px) { .budget-grid { grid-template-columns: 1fr; } .budget-result-card { position: static; } .budget-wrap { padding: 28px 20px 40px; } }
 
+  /* SPARA-SEKTION */
+  .budget-save { margin-top: 20px; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; }
+  .budget-save-title { font-size: 13px; font-weight: 500; color: var(--ink); margin-bottom: 4px; }
+  .budget-save-sub { font-size: 12px; color: var(--ink-soft); font-weight: 300; margin-bottom: 14px; line-height: 1.5; }
+  .save-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .save-option { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); cursor: pointer; transition: all 0.15s; }
+  .save-option:hover { border-color: var(--teal-mid); }
+  .save-option.selected { border-color: var(--teal-mid); background: var(--teal-light); }
+  .save-option-left { display: flex; align-items: center; gap: 10px; }
+  .save-option-dot { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--border-strong); flex-shrink: 0; transition: all 0.15s; }
+  .save-option.selected .save-option-dot { background: var(--teal); border-color: var(--teal); }
+  .save-option-label { font-size: 13px; font-weight: 500; color: var(--ink); }
+  .save-option.selected .save-option-label { color: var(--teal); }
+  .save-option-desc { font-size: 11px; color: var(--ink-muted); margin-top: 1px; }
+  .save-option.selected .save-option-desc { color: var(--teal); opacity: 0.8; }
+  .save-option-amount { font-size: 14px; font-weight: 500; color: var(--ink); }
+  .save-option.selected .save-option-amount { color: var(--teal); }
+  .save-result { background: var(--teal-light); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 12px; color: var(--teal); display: none; }
+  .save-result.visible { display: block; }
+
   /* FAQ */
   .faq-section { background: var(--white); border-top: 1px solid var(--border); }
   .faq-inner { max-width: 760px; margin: 0 auto; padding: 72px 40px 80px; }
@@ -1188,6 +1208,13 @@
             <button class="btn btn-amber" onclick="unlockBudgetOptimize()">Lås upp budgetoptimering — 49 kr →</button>
           </div>
 
+          <div class="budget-save" id="br-save" style="display:none;">
+            <div class="budget-save-title">Spara varje månad</div>
+            <div class="budget-save-sub" id="br-save-sub">Välj hur mycket du vill sätta av — vi visar vad det ger på ett år.</div>
+            <div class="save-options" id="br-save-options"></div>
+            <div class="save-result" id="br-save-result"></div>
+          </div>
+
         </div>
       </div>
 
@@ -1893,6 +1920,76 @@ function updateBudget() {
 
   document.getElementById('br-cta').style.display = left > 0 ? 'block' : 'none';
   document.getElementById('br-premium').style.display = totalExp > 0 ? 'block' : 'none';
+  updateSaveSection(Math.max(0, left));
+}
+
+function updateSaveSection(left) {
+  const el = document.getElementById('br-save');
+  const sub = document.getElementById('br-save-sub');
+  const optionsEl = document.getElementById('br-save-options');
+
+  if (left <= 0) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+
+  // Räkna ut sparnivåer baserat på vad som är kvar
+  const min = Math.max(100, Math.round(left * 0.05 / 100) * 100);
+  const mid = Math.max(200, Math.round(left * 0.10 / 100) * 100);
+  const rec = Math.max(500, Math.round(left * 0.20 / 100) * 100);
+  const max = Math.max(1000, Math.round(left * 0.30 / 100) * 100);
+
+  sub.textContent = 'Baserat på att du har ' + fmt(left) + ' kr kvar — välj din sparnivå.';
+
+  const options = [
+    { key: 'min', label: 'Miniminivå', desc: '5% av överskottet', amount: min, tag: '' },
+    { key: 'mid', label: 'Lagom', desc: '10% av överskottet', amount: mid, tag: '' },
+    { key: 'rec', label: 'Rekommenderat', desc: '20% av överskottet — bra buffert', amount: rec, tag: 'rec' },
+    { key: 'max', label: 'Ambitiöst', desc: '30% av överskottet', amount: max, tag: '' },
+  ];
+
+  optionsEl.innerHTML = options.map(o => {
+    const yearAmt = fmt(o.amount * 12);
+    return '<div class="save-option" onclick="selectSaveOption(this,' + o.amount + ',' + left + ')" data-key="' + o.key + '">' +
+      '<div class="save-option-left">' +
+        '<div class="save-option-dot"></div>' +
+        '<div>' +
+          '<div class="save-option-label">' + o.label + (o.tag === 'rec' ? ' ★' : '') + '</div>' +
+          '<div class="save-option-desc">' + o.desc + ' · ' + yearAmt + ' kr/år</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="save-option-amount">' + fmt(o.amount) + ' kr/mån</div>' +
+    '</div>';
+  }).join('');
+
+  // Välj rekommenderat som default
+  const recEl = optionsEl.querySelector('[data-key="rec"]');
+  if (recEl) selectSaveOption(recEl, rec, left);
+}
+
+function selectSaveOption(el, amount, left) {
+  document.querySelectorAll('.save-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+
+  const debtPayment = Math.max(0, left - amount);
+  const yearSaving = amount * 12;
+  const resultEl = document.getElementById('br-save-result');
+
+  resultEl.className = 'save-result visible';
+  resultEl.innerHTML =
+    '<strong>' + fmt(amount) + ' kr/mån till sparande</strong> — ' + fmt(yearSaving) + ' kr på ett år. ' +
+    'Kvar till skuldbetalningar: <strong>' + fmt(debtPayment) + ' kr/mån</strong>.' +
+    (debtPayment > 0 ? ' <span style="cursor:pointer;text-decoration:underline;" onclick="applyDebtPayment(' + debtPayment + ')">Använd i kalkylatorn →</span>' : '');
+}
+
+function applyDebtPayment(amount) {
+  showPage("home");
+  setTimeout(function() {
+    var payInput = document.getElementById("payment");
+    if (payInput) {
+      payInput.value = Math.round(amount);
+      payInput.classList.add("has-value");
+      payInput.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, 300);
 }
 
 function sendBudgetToCalc() {
