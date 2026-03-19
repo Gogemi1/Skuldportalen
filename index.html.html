@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skuldportalen — Från kaos till kontroll</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0f1117; --ink-soft: #3d4151; --ink-muted: #8b90a0;
+    --surface: #f7f6f2; --white: #ffffff;
+    --teal: #0d7a5f; --teal-light: #e0f5ee; --teal-mid: #1aab84;
+    --amber: #c97a1a; --amber-light: #fef3e2; --amber-dark: #7a4a0a;
+    --red-soft: #fdf0ee; --red: #c94a2e;
+    --purple: #4a3ab7; --purple-light: #eeedfe;
+    --border: rgba(15,17,23,0.1); --border-strong: rgba(15,17,23,0.18);
+    --radius: 14px; --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--surface); color: var(--ink); line-height: 1.6; min-height: 100vh; }
+
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 20px 40px; background: var(--white); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 200; }
+  .logo { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--ink); letter-spacing: -0.3px; cursor: pointer; }
+  .logo span { color: var(--teal); }
+  .nav-links { display: flex; gap: 28px; align-items: center; }
+  .nav-links a { font-size: 14px; color: var(--ink-soft); text-decoration: none; cursor: pointer; position: relative; z-index: 201; }
+  .nav-cta { background: var(--ink); color: var(--white) !important; padding: 9px 20px; border-radius: 99px; font-size: 14px !important; font-weight: 500 !important; transition: opacity 0.15s; cursor: pointer; }
+  .nav-cta:hover { opacity: 0.85; }
+  .nav-user { font-size: 13px; color: var(--ink-soft); }
+
+  .page { display: none; }
+  .page.active { display: block; animation: fadeUp 0.3s ease both; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes floatIn { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+
+  /* HOME */
+  .hero { max-width: 980px; margin: 0 auto; padding: 80px 40px 60px; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; }
+  .hero-tag { display: inline-flex; align-items: center; gap: 7px; background: var(--teal-light); color: var(--teal); font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 99px; margin-bottom: 24px; }
+  .hero-tag-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--teal-mid); }
+  h1 { font-family: 'DM Serif Display', serif; font-size: 48px; line-height: 1.08; letter-spacing: -1.5px; margin-bottom: 20px; }
+  h1 em { font-style: italic; color: var(--teal); }
+  .hero-sub { font-size: 17px; color: var(--ink-soft); line-height: 1.65; margin-bottom: 24px; font-weight: 300; max-width: 400px; }
+  .hero-proof { display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; }
+  .proof-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ink-soft); }
+  .proof-icon { width: 20px; height: 20px; border-radius: 50%; background: var(--teal-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--teal); }
+  .hero-stats { display: flex; gap: 28px; padding-top: 28px; border-top: 1px solid var(--border); }
+  .stat-num { font-family: 'DM Serif Display', serif; font-size: 28px; letter-spacing: -0.5px; }
+  .stat-label { font-size: 12px; color: var(--ink-muted); margin-top: 1px; }
+
+  .sim-card { background: var(--white); border-radius: 20px; border: 1px solid var(--border); overflow: hidden; animation: floatIn 0.6s ease both; }
+  .sim-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .sim-header-title { font-size: 13px; font-weight: 500; }
+  .sim-header-sub { font-size: 11px; color: var(--ink-muted); margin-top: 1px; }
+  .no-account-tag { font-size: 10px; background: var(--teal-light); color: var(--teal); padding: 3px 9px; border-radius: 99px; font-weight: 500; }
+  .sim-body { padding: 22px 24px; }
+
+  .field-group { margin-bottom: 16px; }
+  .field-label { font-size: 12px; color: var(--ink-soft); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+  .field-hint { font-size: 11px; color: var(--teal); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+  input[type="number"], input[type="text"], input[type="email"], input[type="password"] {
+    width: 100%; height: 44px; border: 1.5px solid var(--border-strong); border-radius: var(--radius-sm);
+    padding: 0 14px; font-size: 15px; font-family: 'DM Sans', sans-serif; font-weight: 500;
+    color: var(--ink); background: var(--surface); outline: none;
+    transition: border-color 0.15s, background 0.15s; -moz-appearance: textfield;
+  }
+  input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+  input:focus { border-color: var(--teal-mid); background: var(--white); }
+  input.has-value { border-color: var(--teal-mid); background: var(--teal-light); color: var(--teal); }
+
+  .btn { width: 100%; border: none; border-radius: var(--radius-sm); font-size: 15px; font-family: 'DM Sans', sans-serif; font-weight: 500; cursor: pointer; transition: opacity 0.15s, transform 0.1s; }
+  .btn:active { transform: scale(0.99); }
+  .btn-dark { background: var(--ink); color: var(--white); height: 48px; }
+  .btn-teal { background: var(--teal); color: var(--white); height: 48px; }
+  .btn-amber { background: var(--amber); color: var(--white); height: 48px; }
+  .btn-ghost { background: transparent; color: var(--ink-soft); height: 40px; border: 1px solid var(--border-strong) !important; font-size: 13px; }
+  .btn:hover { opacity: 0.88; }
+
+  .result-box { display: none; margin-top: 18px; border-top: 1px solid var(--border); padding-top: 18px; }
+  .result-box.visible { display: block; animation: fadeUp 0.4s ease both; }
+  .result-date-label { font-size: 11px; font-weight: 500; color: var(--teal); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 4px; }
+  .result-date { font-family: 'DM Serif Display', serif; font-size: 36px; letter-spacing: -1px; margin-bottom: 4px; line-height: 1.1; }
+  .result-sub { font-size: 12px; color: var(--ink-muted); margin-bottom: 16px; }
+  .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .result-stat { background: var(--surface); border-radius: var(--radius-sm); padding: 10px 12px; }
+  .result-stat-val { font-size: 15px; font-weight: 500; }
+  .result-stat-lbl { font-size: 10px; color: var(--ink-muted); margin-top: 2px; }
+  .result-boost { background: var(--amber-light); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 12px; color: var(--amber); font-weight: 500; margin-bottom: 14px; }
+  .result-boost:empty { display: none; }
+
+  /* TRUST */
+  .trust-bar { background: var(--white); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 20px 40px; }
+  .trust-inner { max-width: 980px; margin: 0 auto; display: flex; gap: 40px; align-items: center; justify-content: center; flex-wrap: wrap; }
+  .trust-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-soft); }
+  .trust-check { width: 18px; height: 18px; border-radius: 50%; background: var(--teal-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+  /* HOW */
+  .how-section { max-width: 980px; margin: 0 auto; padding: 60px 40px 80px; }
+  .section-label { font-size: 11px; font-weight: 500; color: var(--teal); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px; }
+  .section-title { font-family: 'DM Serif Display', serif; font-size: 36px; letter-spacing: -0.8px; margin-bottom: 48px; max-width: 480px; line-height: 1.2; }
+  .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .step-card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); padding: 28px 26px; position: relative; overflow: hidden; }
+  .step-card::before { content: attr(data-num); position: absolute; top: -12px; right: 20px; font-family: 'DM Serif Display', serif; font-size: 80px; color: var(--surface); line-height: 1; pointer-events: none; }
+  .step-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 18px; font-size: 18px; }
+  .icon-teal { background: var(--teal-light); } .icon-amber { background: var(--amber-light); } .icon-red { background: var(--red-soft); }
+  .step-card h3 { font-size: 16px; font-weight: 500; margin-bottom: 8px; letter-spacing: -0.2px; }
+  .step-card p { font-size: 13px; color: var(--ink-soft); line-height: 1.6; font-weight: 300; }
+
+  /* DASHBOARD */
+  .dash-nav { background: var(--white); border-bottom: 1px solid var(--border); padding: 0 40px; display: flex; overflow-x: auto; }
+  .dash-tab { padding: 14px 20px; font-size: 13px; color: var(--ink-muted); border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap; background: none; border-top: none; border-left: none; border-right: none; font-family: 'DM Sans', sans-serif; transition: color 0.15s, border-color 0.15s; }
+  .dash-tab:hover { color: var(--ink); }
+  .dash-tab.active { color: var(--teal); border-bottom-color: var(--teal); font-weight: 500; }
+  .page-inner { max-width: 760px; margin: 0 auto; padding: 52px 40px 80px; }
+  .page-title { font-family: 'DM Serif Display', serif; font-size: 36px; letter-spacing: -0.8px; margin-bottom: 6px; }
+  .page-sub { font-size: 15px; color: var(--ink-soft); font-weight: 300; margin-bottom: 36px; }
+
+  .progress-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 32px; }
+  .progress-bg { flex: 1; height: 4px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 4px; background: var(--teal); border-radius: 99px; transition: width 0.4s; }
+  .progress-label { font-size: 12px; color: var(--ink-muted); white-space: nowrap; }
+
+  .debt-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+  .debt-item { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; display: flex; align-items: center; gap: 14px; }
+  .debt-color-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .debt-info { flex: 1; min-width: 0; }
+  .debt-name { font-size: 14px; font-weight: 500; }
+  .debt-meta { font-size: 12px; color: var(--ink-muted); margin-top: 2px; }
+  .debt-amount { font-size: 16px; font-weight: 500; flex-shrink: 0; }
+  .debt-remove { background: none; border: none; cursor: pointer; color: var(--ink-muted); font-size: 20px; padding: 0 4px; line-height: 1; transition: color 0.15s; }
+  .debt-remove:hover { color: var(--red); }
+
+  .add-form { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 22px; margin-bottom: 20px; }
+  .add-form-title { font-size: 14px; font-weight: 500; margin-bottom: 16px; }
+  .type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+  .type-btn { padding: 8px 0; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); font-size: 12px; font-family: 'DM Sans', sans-serif; background: var(--surface); color: var(--ink-soft); cursor: pointer; text-align: center; transition: all 0.15s; }
+  .type-btn.selected { background: var(--teal-light); color: var(--teal); border-color: var(--teal-mid); font-weight: 500; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+  .form-row .field-group { margin: 0; }
+
+  .total-summary { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 22px; margin-bottom: 24px; }
+  .total-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .total-row:last-child { margin-bottom: 0; }
+  .total-lbl { font-size: 13px; color: var(--ink-soft); }
+  .total-val { font-size: 15px; font-weight: 500; }
+  .total-date { font-size: 20px; font-weight: 500; color: var(--teal); font-family: 'DM Serif Display', serif; }
+
+  /* STRATEGY */
+  .strat-cards { display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px; }
+  .strat-card { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 20px 22px; cursor: pointer; transition: border-color 0.15s; }
+  .strat-card:hover { border-color: var(--teal-mid); }
+  .strat-card.selected { border-color: var(--teal-mid); background: var(--teal-light); }
+  .strat-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .strat-name { font-size: 15px; font-weight: 500; }
+  .strat-card.selected .strat-name { color: var(--teal); }
+  .strat-badge { font-size: 10px; font-weight: 500; padding: 3px 9px; border-radius: 99px; }
+  .badge-rec { background: var(--teal-light); color: var(--teal); }
+  .badge-mot { background: var(--purple-light); color: var(--purple); }
+  .badge-bal { background: var(--amber-light); color: var(--amber); }
+  .strat-desc { font-size: 13px; color: var(--ink-soft); font-weight: 300; }
+  .strat-card.selected .strat-desc { color: var(--teal); }
+
+  .compare-box { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 24px; }
+  .compare-header { padding: 12px 20px; border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 500; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .compare-row { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--border); }
+  .compare-row:last-child { border-bottom: none; }
+  .compare-row.active-row { background: var(--teal-light); }
+  .compare-lbl { font-size: 13px; color: var(--ink-soft); width: 88px; flex-shrink: 0; }
+  .compare-bar-bg { flex: 1; height: 8px; background: var(--surface); border-radius: 99px; overflow: hidden; }
+  .compare-bar { height: 8px; border-radius: 99px; }
+  .bar-teal { background: var(--teal-mid); } .bar-purple { background: var(--purple); } .bar-amber { background: var(--amber); }
+  .compare-date { font-size: 13px; font-weight: 500; width: 80px; flex-shrink: 0; text-align: right; }
+
+  .order-section { margin-bottom: 24px; }
+  .order-label { font-size: 11px; color: var(--ink-muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500; }
+  .order-list { display: flex; flex-direction: column; gap: 8px; }
+  .order-item { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
+  .order-num { width: 24px; height: 24px; border-radius: 50%; color: var(--white); font-size: 11px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .order-info { flex: 1; }
+  .order-name { font-size: 13px; font-weight: 500; }
+  .order-meta { font-size: 11px; color: var(--ink-muted); }
+  .order-amt { font-size: 14px; font-weight: 500; }
+
+  /* AUTH */
+  .auth-wrap { max-width: 420px; margin: 60px auto; padding: 0 20px 80px; }
+  .auth-card { background: var(--white); border: 1px solid var(--border); border-radius: 20px; padding: 36px 36px 32px; }
+  .auth-logo { font-family: 'DM Serif Display', serif; font-size: 20px; margin-bottom: 24px; }
+  .auth-logo span { color: var(--teal); }
+  .auth-title { font-family: 'DM Serif Display', serif; font-size: 28px; letter-spacing: -0.5px; margin-bottom: 6px; }
+  .auth-sub { font-size: 14px; color: var(--ink-soft); font-weight: 300; margin-bottom: 28px; }
+  .auth-divider { display: flex; align-items: center; gap: 12px; margin: 18px 0; }
+  .auth-divider-line { flex: 1; height: 1px; background: var(--border); }
+  .auth-divider-text { font-size: 12px; color: var(--ink-muted); }
+  .auth-switch { font-size: 13px; color: var(--ink-soft); text-align: center; margin-top: 18px; }
+  .auth-switch a { color: var(--teal); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+  .auth-terms { font-size: 11px; color: var(--ink-muted); text-align: center; margin-top: 14px; line-height: 1.5; }
+
+  /* ACKORD */
+  .ackord-intro { background: var(--amber-light); border: 1px solid rgba(201,122,26,0.2); border-radius: var(--radius); padding: 18px 22px; margin-bottom: 28px; }
+  .ackord-intro-title { font-size: 14px; font-weight: 500; color: var(--amber); margin-bottom: 4px; }
+  .ackord-intro-text { font-size: 13px; color: var(--amber-dark); font-weight: 300; line-height: 1.55; }
+  .ackord-list { display: flex; flex-direction: column; gap: 14px; margin-bottom: 28px; }
+  .ackord-item { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 22px; transition: filter 0.3s; }
+  .ackord-item.locked { filter: blur(2px); opacity: 0.5; pointer-events: none; user-select: none; }
+  .ackord-head { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .ackord-name { font-size: 14px; font-weight: 500; }
+  .ackord-amt { font-size: 14px; font-weight: 500; }
+  .ackord-meta { font-size: 12px; color: var(--ink-muted); margin-bottom: 14px; }
+  .chance-bg { height: 6px; background: var(--surface); border-radius: 99px; overflow: hidden; margin-bottom: 6px; }
+  .chance-fill { height: 6px; border-radius: 99px; }
+  .fill-high { background: var(--teal-mid); } .fill-med { background: var(--amber); } .fill-low { background: var(--red); }
+  .chance-row { display: flex; justify-content: space-between; margin-bottom: 12px; }
+  .chance-lbl { font-size: 11px; color: var(--ink-muted); }
+  .chance-high { font-size: 11px; font-weight: 500; color: var(--teal); }
+  .chance-med { font-size: 11px; font-weight: 500; color: var(--amber); }
+  .chance-low { font-size: 11px; font-weight: 500; color: var(--red); }
+  .ackord-range { background: var(--teal-light); border-radius: var(--radius-sm); padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; }
+  .ar-lbl { font-size: 11px; color: var(--teal); }
+  .ar-val { font-size: 15px; font-weight: 500; color: var(--teal); }
+
+  .premium-gate { border: 2px solid var(--amber); border-radius: var(--radius); padding: 28px; text-align: center; margin-bottom: 24px; }
+  .pg-title { font-family: 'DM Serif Display', serif; font-size: 24px; margin-bottom: 8px; }
+  .pg-sub { font-size: 13px; color: var(--ink-soft); font-weight: 300; margin-bottom: 20px; line-height: 1.6; max-width: 380px; margin-left: auto; margin-right: auto; }
+  .pg-price { font-family: 'DM Serif Display', serif; font-size: 44px; margin-bottom: 2px; }
+  .pg-price-sub { font-size: 12px; color: var(--ink-muted); margin-bottom: 20px; }
+  .pg-fine { font-size: 11px; color: var(--ink-muted); margin-top: 12px; }
+
+  .guide-section { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+  .guide-item { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; display: flex; gap: 14px; align-items: flex-start; }
+  .guide-num { width: 24px; height: 24px; border-radius: 50%; background: var(--teal); color: var(--white); font-size: 11px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .guide-title { font-size: 13px; font-weight: 500; margin-bottom: 3px; }
+  .guide-desc { font-size: 12px; color: var(--ink-soft); line-height: 1.5; font-weight: 300; }
+  .guide-tag { display: inline-block; font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 99px; margin-top: 5px; }
+  .tag-teal { background: var(--teal-light); color: var(--teal); }
+  .tag-purple { background: var(--purple-light); color: var(--purple); }
+
+  .template-box { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 22px; margin-bottom: 24px; }
+  .template-label { font-size: 11px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; font-weight: 500; }
+  .template-text { font-size: 13px; color: var(--ink); line-height: 1.7; font-style: italic; margin-bottom: 14px; }
+  .copy-btn { background: none; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); padding: 8px 16px; font-size: 12px; font-family: 'DM Sans', sans-serif; color: var(--teal); cursor: pointer; transition: background 0.15s; }
+  .copy-btn:hover { background: var(--teal-light); }
+
+  /* DELA-KORT */
+  .share-modal-bg { display: none; position: fixed; inset: 0; background: rgba(15,17,23,0.6); z-index: 500; align-items: center; justify-content: center; padding: 20px; }
+  .share-modal-bg.open { display: flex; animation: fadeUp 0.2s ease both; }
+  .share-modal { background: var(--white); border-radius: 20px; max-width: 440px; width: 100%; overflow: hidden; }
+  .share-modal-head { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .share-modal-title { font-size: 15px; font-weight: 500; color: var(--ink); }
+  .share-close { background: none; border: none; cursor: pointer; font-size: 20px; color: var(--ink-muted); line-height: 1; padding: 0; }
+  .share-card-preview { margin: 20px; border-radius: var(--radius); overflow: hidden; }
+  .share-card { background: var(--ink); padding: 32px 28px; text-align: center; }
+  .share-card-logo { font-family: 'DM Serif Display', serif; font-size: 14px; color: rgba(255,255,255,0.4); margin-bottom: 24px; letter-spacing: 0.5px; }
+  .share-card-label { font-size: 11px; font-weight: 500; color: var(--teal-mid); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+  .share-card-date { font-family: 'DM Serif Display', serif; font-size: 38px; color: var(--white); letter-spacing: -1px; line-height: 1.1; margin-bottom: 8px; }
+  .share-card-sub { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 24px; }
+  .share-card-stats { display: flex; justify-content: center; gap: 24px; }
+  .share-card-stat-val { font-size: 18px; font-weight: 500; color: var(--white); }
+  .share-card-stat-lbl { font-size: 10px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+  .share-actions { padding: 0 20px 20px; display: flex; flex-direction: column; gap: 8px; }
+  .share-hint { font-size: 11px; color: var(--ink-muted); text-align: center; margin-top: 4px; }
+
+  /* OM OSS */
+  .about-wrap { max-width: 680px; margin: 0 auto; padding: 64px 40px 0; }
+  .about-hero { margin-bottom: 48px; }
+  .about-title { font-family: 'DM Serif Display', serif; font-size: 36px; letter-spacing: -0.8px; line-height: 1.2; color: var(--ink); margin-top: 10px; }
+  .about-founder { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; padding: 16px 20px; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); }
+  .about-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--teal-light); color: var(--teal); font-family: 'DM Serif Display', serif; font-size: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .about-founder-name { font-size: 14px; font-weight: 500; color: var(--ink); }
+  .about-founder-role { font-size: 12px; color: var(--ink-muted); margin-top: 2px; }
+  .about-text { margin-bottom: 40px; }
+  .about-text p { font-size: 15px; color: var(--ink-soft); line-height: 1.8; font-weight: 300; margin-bottom: 18px; }
+  .about-text p:last-child { margin-bottom: 0; }
+  .about-values { display: flex; flex-direction: column; gap: 20px; margin-bottom: 40px; padding: 28px; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); }
+  .about-value { display: flex; gap: 14px; align-items: flex-start; }
+  .about-value-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .about-value-title { font-size: 14px; font-weight: 500; color: var(--ink); margin-bottom: 4px; }
+  .about-value-text { font-size: 13px; color: var(--ink-soft); line-height: 1.6; font-weight: 300; }
+  .about-cta { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 64px; }
+  @media (max-width: 760px) { .about-wrap { padding: 40px 20px 0; } .about-title { font-size: 28px; } .about-cta { flex-direction: column; } .about-cta .btn { width: 100% !important; } }
+
+  /* BUDGET */
+  .budget-wrap { max-width: 980px; margin: 0 auto; padding: 52px 40px 40px; }
+  .budget-header { margin-bottom: 40px; }
+  .back-btn { background: none; border: none; cursor: pointer; font-family: var(--font-sans); font-size: 13px; color: var(--ink-muted); padding: 0; margin-bottom: 16px; display: block; }
+  .back-btn:hover { color: var(--ink); }
+  .budget-grid { display: grid; grid-template-columns: 1fr 380px; gap: 28px; align-items: start; }
+  .budget-section-title { font-size: 12px; font-weight: 500; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.06em; margin: 20px 0 10px; }
+  .budget-section-title:first-child { margin-top: 0; }
+  .budget-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 20px; margin-bottom: 4px; }
+  .budget-row { padding: 12px 0; border-bottom: 0.5px solid var(--border); }
+  .budget-row:last-child { border-bottom: none; }
+  .budget-label { display: block; font-size: 13px; color: var(--ink-soft); margin-bottom: 6px; }
+  .budget-input-wrap { position: relative; }
+  .budget-avg { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 10px; color: var(--ink-muted); pointer-events: none; }
+  .budget-result-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; position: sticky; top: 80px; }
+  .budget-result-section { margin-bottom: 16px; }
+  .budget-result-label { font-size: 11px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .budget-result-value { font-size: 18px; font-weight: 500; color: var(--ink); }
+  .budget-result-big { font-family: 'DM Serif Display', serif; font-size: 36px; letter-spacing: -0.5px; color: var(--teal); }
+  .budget-result-big.negative { color: var(--red); }
+  .budget-divider { height: 1px; background: var(--border); margin: 16px 0; }
+  .budget-rec { border-radius: var(--radius-sm); padding: 12px 14px; margin: 16px 0; }
+  .budget-rec-title { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+  .budget-rec-text { font-size: 12px; line-height: 1.55; font-weight: 300; }
+  .budget-rec.good { background: var(--teal-light); }
+  .budget-rec.good .budget-rec-title { color: var(--teal); }
+  .budget-rec.good .budget-rec-text { color: var(--teal); }
+  .budget-rec.warn { background: var(--amber-light); }
+  .budget-rec.warn .budget-rec-title { color: var(--amber); }
+  .budget-rec.warn .budget-rec-text { color: var(--amber-dark); }
+  .budget-rec.bad { background: var(--red-soft); }
+  .budget-rec.bad .budget-rec-title { color: var(--red); }
+  .budget-rec.bad .budget-rec-text { color: var(--red); }
+  .budget-breakdown-label { font-size: 11px; font-weight: 500; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 16px 0 10px; }
+  .budget-bar-row { margin-bottom: 10px; }
+  .budget-bar-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-soft); margin-bottom: 3px; }
+  .budget-bar-track { height: 6px; background: var(--surface); border-radius: 99px; overflow: visible; position: relative; }
+  .budget-bar-fill { height: 6px; border-radius: 99px; transition: width 0.4s; }
+  .budget-bar-avg-line { position: absolute; top: -3px; width: 2px; height: 12px; background: var(--ink-muted); border-radius: 1px; }
+  .budget-premium { margin-top: 20px; padding: 16px; background: var(--amber-light); border-radius: var(--radius-sm); }
+  .budget-premium-title { font-size: 14px; font-weight: 500; color: var(--amber); margin-bottom: 4px; }
+  .budget-premium-text { font-size: 12px; color: var(--amber-dark); font-weight: 300; line-height: 1.5; margin-bottom: 12px; }
+  @media (max-width: 760px) { .budget-grid { grid-template-columns: 1fr; } .budget-result-card { position: static; } .budget-wrap { padding: 28px 20px 40px; } }
+
+  /* FAQ */
+  .faq-section { background: var(--white); border-top: 1px solid var(--border); }
+  .faq-inner { max-width: 760px; margin: 0 auto; padding: 72px 40px 80px; }
+  .faq-cats { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 36px; }
+  .faq-cat { background: var(--surface); border: 1px solid var(--border-strong); border-radius: 99px; padding: 7px 16px; font-size: 13px; font-family: 'DM Sans', sans-serif; color: var(--ink-soft); cursor: pointer; transition: all 0.15s; }
+  .faq-cat:hover { border-color: var(--teal-mid); color: var(--teal); }
+  .faq-cat.active { background: var(--ink); color: var(--white); border-color: var(--ink); }
+  .faq-list { display: flex; flex-direction: column; }
+  .faq-item { border-bottom: 1px solid var(--border); }
+  .faq-item:first-child { border-top: 1px solid var(--border); }
+  .faq-q { width: 100%; background: none; border: none; padding: 20px 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; cursor: pointer; text-align: left; font-family: 'DM Sans', sans-serif; }
+  .faq-q span { font-size: 15px; font-weight: 500; color: var(--ink); line-height: 1.4; }
+  .faq-q:hover span { color: var(--teal); }
+  .faq-chevron { width: 20px; height: 20px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border-strong); flex-shrink: 0; position: relative; transition: background 0.15s, transform 0.25s; }
+  .faq-chevron::before, .faq-chevron::after { content: ''; position: absolute; background: var(--ink-muted); border-radius: 2px; transition: transform 0.25s; }
+  .faq-chevron::before { width: 8px; height: 1.5px; top: 50%; left: 50%; transform: translate(-50%,-50%); }
+  .faq-chevron::after { width: 1.5px; height: 8px; top: 50%; left: 50%; transform: translate(-50%,-50%); }
+  .faq-item.open .faq-chevron { background: var(--teal-light); border-color: var(--teal-mid); transform: rotate(45deg); }
+  .faq-a { display: none; padding: 0 0 20px; }
+  .faq-item.open .faq-a { display: block; animation: fadeUp 0.2s ease both; }
+  .faq-a p { font-size: 14px; color: var(--ink-soft); line-height: 1.75; font-weight: 300; margin-bottom: 0; }
+  .faq-a ul { padding-left: 18px; margin-top: 8px; }
+  .faq-a ul li { font-size: 14px; color: var(--ink-soft); line-height: 1.75; font-weight: 300; margin-bottom: 4px; }
+  .faq-a strong { font-weight: 500; color: var(--ink); }
+  .faq-formula { background: var(--surface); border-radius: var(--radius-sm); padding: 12px 16px; font-family: 'DM Mono', monospace; font-size: 13px; color: var(--teal); margin: 10px 0; border-left: 3px solid var(--teal-mid); border-radius: 0; }
+  .faq-item.hidden { display: none; }
+  @media (max-width: 760px) { .faq-inner { padding: 48px 20px 60px; } .faq-q span { font-size: 14px; } }
+
+  /* ACKORD GUIDE */
+  .ackord-guide-section { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 28px; overflow: hidden; }
+  .ackord-info-toggle { width: 100%; background: none; border: none; padding: 18px 22px; display: flex; align-items: center; justify-content: space-between; gap: 16px; cursor: pointer; font-family: var(--font-sans); text-align: left; }
+  .ackord-info-toggle span { font-size: 15px; font-weight: 500; color: var(--ink); }
+  .ackord-info-toggle:hover span { color: var(--teal); }
+  .ackord-info-body { padding: 0 22px 24px; border-top: 1px solid var(--border); }
+  .ack-intro-text { font-size: 14px; color: var(--ink-soft); line-height: 1.75; font-weight: 300; padding: 18px 0 20px; }
+  .ack-blocks { display: flex; flex-direction: column; gap: 18px; margin-bottom: 24px; }
+  .ack-block { display: flex; gap: 14px; align-items: flex-start; }
+  .ack-block-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+  .ack-block-title { font-size: 14px; font-weight: 500; color: var(--ink); margin-bottom: 6px; }
+  .ack-block-text { font-size: 13px; color: var(--ink-soft); line-height: 1.7; font-weight: 300; }
+  .ack-block-text strong { font-weight: 500; color: var(--ink); }
+  .ack-block-text em { font-style: italic; color: var(--ink); }
+  .ack-factor { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px; }
+  .ack-factor:last-child { margin-bottom: 0; }
+  .ack-factor-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
+  .ack-cta-bar { background: var(--teal-light); border-radius: var(--radius-sm); padding: 16px 18px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .ack-cta-text { font-size: 13px; font-weight: 500; color: var(--teal); }
+
+  /* STATUS-KORT */
+  .status-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 16px; }
+  .status-card { border: 1.5px solid var(--border-strong); border-radius: var(--radius-sm); padding: 12px 10px; cursor: pointer; transition: all 0.15s; text-align: center; }
+  .status-card:hover { border-color: var(--teal-mid); }
+  .status-card.selected { background: var(--teal-light); border-color: var(--teal-mid); }
+  .status-card-title { font-size: 12px; font-weight: 500; color: var(--ink); margin-bottom: 3px; }
+  .status-card.selected .status-card-title { color: var(--teal); }
+  .status-card-desc { font-size: 10px; color: var(--ink-muted); line-height: 1.4; }
+  .status-card.selected .status-card-desc { color: var(--teal); opacity: 0.8; }
+  input[type="date"] { width:100%; height:44px; border:1.5px solid var(--border-strong); border-radius:var(--radius-sm); padding:0 14px; font-size:14px; font-family:'DM Sans',sans-serif; color:var(--ink); background:var(--surface); outline:none; transition:border-color 0.15s; }
+  input[type="date"]:focus { border-color:var(--teal-mid); background:var(--white); }
+  @media (max-width:540px) { .status-grid { grid-template-columns:1fr; } }
+
+  /* METODVAL */
+  .method-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; }
+  .method-card { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 24px 20px; cursor: pointer; transition: border-color 0.15s, transform 0.1s; text-align: center; }
+  .method-card:hover { border-color: var(--teal-mid); transform: translateY(-2px); }
+  .method-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
+  .method-title { font-size: 15px; font-weight: 500; color: var(--ink); margin-bottom: 6px; }
+  .method-desc { font-size: 12px; color: var(--ink-soft); font-weight: 300; line-height: 1.5; margin-bottom: 12px; }
+  .method-tag { display: inline-block; font-size: 10px; font-weight: 500; padding: 3px 10px; border-radius: 99px; }
+  @media (max-width: 540px) { .method-grid { grid-template-columns: 1fr; } }
+
+  /* UC UPLOAD */
+  .uc-steps { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+  .uc-step-item { display: flex; gap: 14px; align-items: flex-start; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; }
+  .uc-step-num { width: 24px; height: 24px; border-radius: 50%; background: var(--teal-light); color: var(--teal); font-size: 11px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .uc-step-title { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+  .uc-step-desc { font-size: 12px; color: var(--ink-soft); font-weight: 300; line-height: 1.5; }
+  .uc-link { display: inline-block; margin-top: 6px; font-size: 12px; color: var(--teal); text-decoration: underline; text-underline-offset: 2px; }
+
+  .upload-zone { border: 2px dashed var(--border-strong); border-radius: var(--radius); padding: 44px 24px; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; margin-bottom: 14px; }
+  .upload-zone:hover, .upload-zone.drag-over { border-color: var(--teal-mid); background: var(--teal-light); }
+  .upload-icon { color: var(--ink-muted); margin-bottom: 14px; }
+  .upload-zone:hover .upload-icon, .upload-zone.drag-over .upload-icon { color: var(--teal); }
+  .upload-title { font-size: 14px; font-weight: 500; color: var(--ink); margin-bottom: 6px; }
+  .upload-sub { font-size: 12px; color: var(--ink-muted); }
+  .upload-privacy { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--ink-muted); margin-bottom: 28px; }
+  .upload-privacy svg { flex-shrink: 0; color: var(--teal); }
+
+  /* PARSING */
+  .parsing-box { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 40px 32px; text-align: center; }
+  .parsing-spinner { width: 36px; height: 36px; border: 3px solid var(--teal-light); border-top-color: var(--teal); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 20px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .parsing-title { font-size: 15px; font-weight: 500; margin-bottom: 20px; }
+  .parsing-steps { display: flex; flex-direction: column; gap: 8px; text-align: left; max-width: 320px; margin: 0 auto; }
+  .ps-item { font-size: 13px; color: var(--ink-muted); padding: 6px 10px; border-radius: var(--radius-sm); display: flex; align-items: center; gap: 8px; }
+  .ps-item::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--border-strong); flex-shrink: 0; }
+  .ps-item.active { color: var(--teal); font-weight: 500; background: var(--teal-light); }
+  .ps-item.active::before { background: var(--teal-mid); }
+  .ps-item.done { color: var(--ink-soft); }
+  .ps-item.done::before { background: var(--teal); }
+
+  /* UC RESULT BANNER */
+  .uc-parsed-banner { background: var(--teal-light); border: 1px solid rgba(13,122,95,0.2); border-radius: var(--radius); padding: 14px 18px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .uc-banner-icon { width: 32px; height: 32px; border-radius: 50%; background: var(--teal); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .uc-banner-title { font-size: 13px; font-weight: 500; color: var(--teal); }
+  .uc-banner-sub { font-size: 12px; color: var(--teal); opacity: 0.8; margin-top: 1px; }
+
+  footer { padding: 30px 40px; text-align: center; font-size: 12px; color: var(--ink-muted); border-top: 1px solid var(--border); }
+
+  @media (max-width: 520px) {
+    nav { padding: 16px 20px; }
+    .nav-links a:not(.nav-cta) { display: none; }
+    .hero { grid-template-columns: 1fr; gap: 40px; padding: 48px 20px 40px; }
+    h1 { font-size: 38px; }
+    .hero-sub { font-size: 15px; }
+    .how-section { padding: 48px 20px 60px; }
+    .steps-grid { grid-template-columns: 1fr; }
+    .section-title { font-size: 28px; }
+    .trust-bar { padding: 20px; }
+    .page-inner { padding: 28px 20px 60px; }
+    .form-row { grid-template-columns: 1fr; }
+    .type-grid { grid-template-columns: repeat(2, 1fr); }
+    .auth-card { padding: 24px 20px; }
+    .dash-nav { padding: 0 20px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo" onclick="showPage('home')">Skuld<span>portalen</span></div>
+  <div class="nav-links">
+    <a href="#" onclick="event.preventDefault();showPage('home')">Hem</a>
+    <a href="#" onclick="event.preventDefault();showPage('about')">Om oss</a>
+    <a href="#" onclick="event.preventDefault();showPage('budget')">Budgetsimulator</a>
+    <div id="nav-loggedout" style="display:flex;align-items:center;">
+      <a href="#" class="nav-cta" onclick="event.preventDefault();showPage('register')">Kom igång gratis</a>
+    </div>
+    <div id="nav-loggedin" style="display:none;align-items:center;gap:16px;">
+      <button onclick="showPage('debts')" id="nav-username" style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--ink-soft);text-decoration:underline;text-underline-offset:3px;padding:0;"></button>
+      <button class="nav-cta btn" style="width:auto;padding:9px 20px;height:auto;" onclick="logout()">Logga ut</button>
+    </div>
+  </div>
+</nav>
+
+<!-- HOME -->
+<div class="page active" id="page-home">
+  <section class="hero">
+    <div class="hero-left">
+      <div class="hero-tag"><div class="hero-tag-dot"></div>Gratis att prova — inget konto behövs</div>
+      <h1>Från skuld<br>till <em>fri</em>het</h1>
+      <p class="hero-sub">Lägg in dina skulder och se exakt vilket datum du är skuldfri — vi ger dig en strategi som fungerar.</p>
+      <div class="hero-stats">
+        <div><div class="stat-num">1,15 milj</div><div class="stat-label">Svenskar med skulder hos inkassobolag</div></div>
+        <div><div class="stat-num">38 mån</div><div class="stat-label">Genomsnittlig tid till frihet</div></div>
+        <div><div class="stat-num">30–50%</div><div class="stat-label">Möjlig avskrivning via ackord</div></div>
+      </div>
+    </div>
+    <div class="sim-card">
+      <div class="sim-header">
+        <div><div class="sim-header-title">Räkna ut ditt datum</div><div class="sim-header-sub">Tre fält. Direkt svar.</div></div>
+        <div class="no-account-tag">Inget konto krävs</div>
+      </div>
+      <div class="sim-body">
+        <div class="field-group"><div class="field-label">Skuld (kr)</div><input type="number" id="debt" placeholder="t.ex. 45 000" min="0"></div>
+        <div class="field-group">
+          <div class="field-label">Ränta per år (%) <span class="field-hint" onclick="setDefaultRate()">Vet du inte? →</span></div>
+          <input type="number" id="rate" placeholder="t.ex. 18" min="0" max="100" step="0.1">
+        </div>
+        <div class="field-group"><div class="field-label">Vad kan du betala per månad (kr)</div><input type="number" id="payment" placeholder="t.ex. 1 200" min="0"></div>
+        <button class="btn btn-dark" onclick="calculate()">Räkna ut mitt datum →</button>
+        <div class="result-box" id="result">
+          <div class="result-date-label">Du är skuldfri</div>
+          <div class="result-date" id="result-date">—</div>
+          <div class="result-sub" id="result-sub"></div>
+          <div class="result-grid">
+            <div class="result-stat"><div class="result-stat-val" id="res-months">—</div><div class="result-stat-lbl">Månader kvar</div></div>
+            <div class="result-stat"><div class="result-stat-val" id="res-interest">—</div><div class="result-stat-lbl">Total ränta</div></div>
+            <div class="result-stat"><div class="result-stat-val" id="res-total">—</div><div class="result-stat-lbl">Totalt att betala</div></div>
+            <div class="result-stat"><div class="result-stat-val" id="res-boost-stat">—</div><div class="result-stat-lbl">Om +500 kr/mån</div></div>
+          </div>
+          <div class="result-boost" id="res-boost-msg"></div>
+          <button class="btn btn-teal" style="margin-bottom:8px;" onclick="openShareModal()">Dela mitt datum →</button>
+          <button class="btn btn-ghost" onclick="handleAddMore()">+ Lägg till fler skulder</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="trust-bar">
+    <div class="trust-inner">
+      <div class="trust-item"><div class="trust-check"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="#0d7a5f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>Ingen registrering krävs</div>
+      <div class="trust-item"><div class="trust-check"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="#0d7a5f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>Vi säljer aldrig din data</div>
+      <div class="trust-item"><div class="trust-check"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="#0d7a5f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>GDPR-säkert</div>
+      <div class="trust-item"><div class="trust-check"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="#0d7a5f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>Gratis att börja</div>
+    </div>
+  </div>
+
+  <section class="how-section">
+    <div class="section-label">Hur det fungerar</div>
+    <div class="section-title">Tre steg från kaos till kontroll</div>
+    <div class="steps-grid">
+      <div class="step-card" data-num="1"><div class="step-icon icon-teal">📋</div><h3>Lägg in dina skulder</h3><p>Ange belopp, ränta och vad du kan betala. Vi fyller i standardvärden om du inte vet — det tar under tre minuter.</p></div>
+      <div class="step-card" data-num="2"><div class="step-icon icon-amber">📊</div><h3>Få din strategi</h3><p>Välj mellan snowball, avalanche eller balanserad. Se exakt i vilken ordning du betalar och hur mycket du sparar.</p></div>
+      <div class="step-card" data-num="3"><div class="step-icon icon-red">🤝</div><h3>Förhandla ned skulden</h3><p>Med Premium-analysen ser du vilka skulder som kan skrivas av — och får mallar för att kontakta inkassobolagen.</p></div>
+    </div>
+  </section>
+  <section class="faq-section">
+    <div class="faq-inner">
+      <div class="section-label">Frågor &amp; svar</div>
+      <div class="section-title">Det du undrar — besvarat</div>
+
+      <div class="faq-cats">
+        <button class="faq-cat active" onclick="filterFaq('all',this)">Alla</button>
+        <button class="faq-cat" onclick="filterFaq('ackord',this)">Ackord</button>
+        <button class="faq-cat" onclick="filterFaq('pris',this)">Priser</button>
+        <button class="faq-cat" onclick="filterFaq('kalkyl',this)">Kalkylatorn</button>
+        <button class="faq-cat" onclick="filterFaq('sakerhet',this)">Säkerhet &amp; GDPR</button>
+      </div>
+
+      <div class="faq-list" id="faq-list">
+
+        <div class="faq-item" data-cat="ackord">
+          <button class="faq-q" onclick="toggleFaq(this)"><span>Vad är ett ackord och är det lagligt?</span><div class="faq-chevron"></div></button>
+          <div class="faq-a"><p>Ja, helt lagligt. Ett ackord är en frivillig uppgörelse där du betalar en del av skulden som slutbetalning — och resten skrivs av. Det kräver inget domstolsbeslut, ingen myndighet behöver blandas in. Det räcker med ett skriftligt avtal mellan dig och borgenären.</p></div>
+        </div>
+
+        <div class="faq-item" data-cat="ackord">
+          <button class="faq-q" onclick="toggleFaq(this)"><span>Varför skulle inkassobolaget gå med på ett lägre belopp?</span><div class="faq-chevron"></div></button>
+          <div class="faq-a"><p>Inkassobolag köper ofta gamla skulder för 5–20% av ursprungsvärdet. En skuld på 50 000 kr kan alltså ha kostat dem 5 000 kr. Om du erbjuder 18 000 kr gör de fortfarande en bra affär — och de slipper fortsätta jaga betalningen i flera år. Ju äldre skulden är, desto mer motiverade är de att avsluta den.</p></div>
+        </div>
+
+        <div class="faq-item" data-cat="ackord">
+          <button class="faq-q" onclick="toggleFaq(this)"><span>Påverkar ett ackord min kreditvärdighet?</span><div class="faq-chevron"></div></button>
+          <div class="faq-a"><p>Skulden är troligen redan registrerad hos Kronofogden eller som en betalningsanmärkning — det är det som påverkar din kreditvärdighet. Att lösa skulden via ackord tar inte bort anmärkningen omedelbart, men den försvinner automatiskt efter tre år (fem år för skulder hos KFM). Att betala av skulden är alltid bättre än att låta den växa.</p></div>
+        </div>
+
+        <div class="faq-item" data-cat="ackord">
+          <button class="faq-q" onclick="toggleFaq(this)"><span>Vad är skillnaden på inkasso, BF och utmätning?</span><div class="faq-chevron"></div></button>
+          <div class="faq-a">
+            <p>Det är tre steg i samma kedja — och ju längre in i kedjan, desto fler möjligheter att förhandla:</p>
+            <ul>
+              <li><strong>Inkasso</strong> — skulden har lämnats till ett inkassobolag. Du förhandlar direkt med dem.</li>
+              <li><strong>Betalningsföreläggande (BF)</strong> — Kronofogden har utfärdat ett föreläggande. Du har fortfarande möjlighet att bestrida eller förhandla.</li>
+              <li><strong>Utmätning (UTM)</strong> — KFM driver aktiv indrivning. Chansen för ackord är faktiskt högst här, eftersom alla parter vill avsluta snabbt.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="faq-item" data-cat="pris">
+          <button class="faq-q" onclick="toggleFaq(this)"><span>Vad är gratis och vad kostar det?</span><div class="faq-chevron"></div></button>
+          <div class="faq-a">
+            <p>Kalkylatorn, skuldfrihetsdatumet och strategijämförelsen är helt gratis — utan registrering. Du behöver inte ens skapa ett konto för att prova.</p>
+            <p style="margin-top:10px;">Ackordsanalysen med steg-för-steg-guide och färdig brevmall kostar <strong>99 kr</strong> som en engångsbetalning. Ingen prenumeration, inga dolda avgifter.</p>
+          </div>
+        </div>
+
+        <div class="faq-item" data-cat="pris">
+          <button class="faq-q" onclick="toggleFaq(this)"><span>Varför ska jag betala 99 kr för ackordsanalysen?</span><div class="faq-chevron"></div></button>
+          <div class="faq-a"><p>Du betalar för att slippa gissa. Analysen räknar ut exakt vilket belopp du ska erbjuda baserat på skuldens ålder och status — och ger dig ett färdigt brev du kan skicka direkt. Kan du förhandla ned en skuld på 40 000 kr till 15 000 kr sparar du 25 000 kr. Då är 99 kr en bra affär. Inte nöjd? Pengarna tillbaka inom 14 dagar.</p></div>
+        </div>
+
+        <div class="faq-item" data-cat="kalkyl">
+          <button class="faq-q" onclick="toggleFaq(this)"><span>Hur räknar kalkylatorn ut skuldfrihetsdatumet?</span><div class="faq-chevron"></div></button>
+          <div class="faq-a">
+            <p>Vi använder en standardformel för amortering med månadsränta:</p>
+            <div class="faq-formula">Ny skuld = Skuld × (1 + ränta/12) − månadsbetalning</div>
+            <p style="margin-top:10px;">Den körs månad för månad tills skulden når noll. Resultatet är antal månader — och vi lägger på dagens datum för att ge dig ett konkret datum istället för ett abstrakt tal.</p>
+          </div>
+        </div>
+
+        <div class="faq-item" data-cat="kalkyl">
+          <button class="faq-q" onclick="toggleFaq(this)"><span>Vad är skillnaden på snowball, avalanche och balanserad?</span><div class="faq-chevron"></div></button>
+          <div class="faq-a">
+            <ul>
+              <li><strong>Avalanche</strong> — betala av den dyraste skulden (högst ränta) först. Du sparar mest pengar totalt, men det kan ta tid innan du ser en skuld försvinna helt.</li>
+              <li><strong>Snowball</strong> — betala av den minsta skulden först. Du ser snabbare framsteg, vilket håller motivationen uppe. Kostar lite mer i ränta totalt.</li>
+              <li><strong>Balanserad</strong> — extra betalningar fördelas jämnt. Enklast att hålla koll på, men varken snabbast eller billigast.</li>
+            </ul>
+            <p style="margin-top:10px;">Vi rekommenderar avalanche för de flesta — men rätt strategi är den du faktiskt håller fast vid.</p>
+          </div>
+        </div>
+
+        <div class="faq-item" data-cat="kalkyl">
+          <button class="faq-q" onclick="toggleFaq(this)"><span>Vet jag inte min ränta — kan jag ändå använda kalkylatorn?</span><div class="faq-chevron"></div></button>
+          <div class="faq-a"><p>Ja. Klicka på "Vet du inte? →" så fyller vi i ett vanligt standardvärde på 20%. Det ger en rimlig uppskattning för de flesta konsumentkrediter. Din ränta hittar du alltid på kontoutdraget, avi från inkassobolaget eller i ditt låneavtal.</p></div>
+        </div>
+
+        <div class="faq-item" data-cat="sakerhet">
+          <button class="faq-q" onclick="toggleFaq(this)"><span>Är mina uppgifter säkra hos er?</span><div class="faq-chevron"></div></button>
+          <div class="faq-a"><p>Vi samlar aldrig in mer än vad som behövs. Skuldbelopp och betalningsplaner sparas lokalt i din webbläsare — inte på våra servrar. Din UC-rapport bearbetas enbart i din webbläsare med pdf.js och skickas aldrig till oss. Vi säljer aldrig din data till tredje part, och vi visar inga annonser.</p></div>
+        </div>
+
+        <div class="faq-item" data-cat="sakerhet">
+          <button class="faq-q" onclick="toggleFaq(this)"><span>Följer ni GDPR?</span><div class="faq-chevron"></div></button>
+          <div class="faq-a"><p>Ja. Vi behandlar personuppgifter i enlighet med GDPR. Du har rätt att begära ut, korrigera eller radera dina uppgifter när som helst. Kontakta oss på <strong>gdpr [at] skuldportalen [dot] se</strong> så hjälper vi dig inom 72 timmar.</p></div>
+        </div>
+
+        <div class="faq-item" data-cat="sakerhet">
+          <button class="faq-q" onclick="toggleFaq(this)"><span>Är ni en bank eller ett inkassobolag?</span><div class="faq-chevron"></div></button>
+          <div class="faq-a"><p>Nej — varken eller. Skuldportalen är ett digitalt verktyg som hjälper dig att förstå och hantera dina skulder. Vi lånar inte ut pengar, driver inte in skulder och har inget ekonomiskt intresse i hur du betalar. Vi är på din sida.</p></div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <footer>© 2025 Skuldportalen &nbsp;·&nbsp; Inte en bank. Inte ett inkassobolag. En plattform som är på din sida.</footer>
+</div>
+
+<!-- OM OSS -->
+<div class="page" id="page-about">
+  <div class="about-wrap">
+
+    <div class="about-hero">
+      <div class="section-label">Om Skuldportalen</div>
+      <h2 class="about-title">Vi vet hur systemet fungerar.<br>Och vi är på din sida.</h2>
+    </div>
+
+    <div class="about-body">
+
+      <div class="about-founder">
+        <div class="about-avatar">J</div>
+        <div>
+          <div class="about-founder-name">Grundaren</div>
+          <div class="about-founder-role">Fd inkassohandläggare &amp; chef · Skuldrådgivare sedan 2020</div>
+        </div>
+      </div>
+
+      <div class="about-text">
+        <p>Jag tillbringade sex år på inkassobolag — först som handläggare, sedan som chef. Jag satt på andra sidan bordet. Jag vet hur inkassobolag tänker, hur de prissätter gamla skulder, och exakt vad som krävs för att de ska gå med på en uppgörelse.</p>
+
+        <p>År 2020 bytte jag sida. Jag startade en skuldrådgivningsbyrå och börjades träffa gäldenärer ansikte mot ansikte. Inte som en motpart — utan som en person som ville hjälpa.</p>
+
+        <p>Det som slog mig var inte skuldstorlekarna eller räntorna. Det var hopplösheten. Folk som inte öppnat brev på månader. Som slutat svara i telefon. Som inte trodde att det kunde bli annorlunda.</p>
+
+        <p>Det enda som bröt igenom var ett datum. När jag satte mig ner med någon och räknade ut exakt när de kunde vara fria — hände något. Ryggen rätades ut lite. Ögonkontakten kom tillbaka.</p>
+
+        <p>Skuldportalen är byggd kring den insikten. Inte för att sälja en tjänst, utan för att ge fler människor tillgång till det där ögonblicket — utan att behöva boka ett möte eller förklara sin situation för en främling.</p>
+
+        <p>Vi är inte en bank. Vi är inte ett inkassobolag. Vi är ett verktyg som är på din sida — byggt av någon som vet hur det ser ut på båda sidor.</p>
+      </div>
+
+      <div class="about-values">
+        <div class="about-value">
+          <div class="about-value-icon" style="background:var(--teal-light);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0d7a5f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div>
+            <div class="about-value-title">Ärlighet framför allt</div>
+            <div class="about-value-text">Vi säger inte att allt går att lösa. Men vi hjälper dig förstå vad som faktiskt är möjligt — och vad det kräver.</div>
+          </div>
+        </div>
+        <div class="about-value">
+          <div class="about-value-icon" style="background:var(--amber-light);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c97a1a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          </div>
+          <div>
+            <div class="about-value-title">Hopp är inte flummigt</div>
+            <div class="about-value-text">Ett datum är konkret. Det är inte motivation — det är matematik. Och matematik kan man lita på.</div>
+          </div>
+        </div>
+        <div class="about-value">
+          <div class="about-value-icon" style="background:var(--purple-light);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4a3ab7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div>
+            <div class="about-value-title">Din data är din</div>
+            <div class="about-value-text">Vi säljer inte din information. Vi visar inga annonser. Intäkterna kommer från dig — inte från de som tjänar på att du är kvar i skuld.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="about-cta">
+        <button class="btn btn-dark" style="width:auto;padding:0 28px;height:48px;" onclick="showPage('home')">Testa kalkylatorn →</button>
+        <button class="btn btn-ghost" style="width:auto;padding:0 20px;" onclick="showPage('register')">Skapa konto gratis</button>
+      </div>
+
+    </div>
+  </div>
+  <footer>© 2025 Skuldportalen &nbsp;·&nbsp; Inte en bank. Inte ett inkassobolag. En plattform som är på din sida.</footer>
+</div>
+
+<!-- DELA-MODAL -->
+<div class="share-modal-bg" id="share-modal-bg" onclick="closeShareModal(event)">
+  <div class="share-modal">
+    <div class="share-modal-head">
+      <div class="share-modal-title">Dela ditt datum</div>
+      <button class="share-close" onclick="document.getElementById('share-modal-bg').classList.remove('open')">×</button>
+    </div>
+    <div class="share-card-preview">
+      <div class="share-card">
+        <div class="share-card-logo">Skuldportalen</div>
+        <div class="share-card-label">Jag är skuldfri</div>
+        <div class="share-card-date" id="share-date">—</div>
+        <div class="share-card-sub" id="share-sub">—</div>
+        <div class="share-card-stats">
+          <div><div class="share-card-stat-val" id="share-months">—</div><div class="share-card-stat-lbl">månader kvar</div></div>
+          <div><div class="share-card-stat-val" id="share-total">—</div><div class="share-card-stat-lbl">totalt att betala</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="share-actions">
+      <button class="btn btn-dark" onclick="copyShareText()">Kopiera text att dela →</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('share-modal-bg').classList.remove('open')">Stäng</button>
+      <div class="share-hint">Ta en skärmdump av kortet ovan för att dela som bild på sociala medier</div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="page" id="page-debts">
+  <div class="dash-nav">
+    <button class="dash-tab active" id="tab-debts" onclick="switchTab('debts')">Mina skulder</button>
+    <button class="dash-tab" id="tab-strategy" onclick="switchTab('strategy')">Strategi</button>
+    <button class="dash-tab" id="tab-ackord" onclick="switchTab('ackord')">Ackordsanalys</button>
+  </div>
+
+  <div id="view-debts" class="page-inner">
+    <div class="page-title">Dina skulder</div>
+    <div class="page-sub">Lägg till alla skulder för en fullständig bild.</div>
+    <div class="progress-wrap"><div class="progress-bg"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div><div class="progress-label" id="prog-label">0 skulder tillagda</div></div>
+    <div class="debt-list" id="debt-list"><div id="empty-msg" style="text-align:center;padding:32px;color:var(--ink-muted);font-size:14px;background:var(--white);border:1px dashed var(--border-strong);border-radius:var(--radius);">Inga skulder tillagda — fyll i formuläret nedan</div></div>
+    <div class="add-form">
+      <div class="add-form-title">Lägg till en skuld</div>
+      <div class="type-grid">
+        <button class="type-btn" onclick="pickType(this,'SMS-lån',38)">SMS-lån</button>
+        <button class="type-btn" onclick="pickType(this,'Inkasso',20)">Inkasso</button>
+        <button class="type-btn" onclick="pickType(this,'CSN',0)">CSN</button>
+        <button class="type-btn" onclick="pickType(this,'Kreditkort',25)">Kreditkort</button>
+        <button class="type-btn" onclick="pickType(this,'Blancolån',15)">Blancolån</button>
+        <button class="type-btn" onclick="pickType(this,'Annat',18)">Annat</button>
+      </div>
+      <div class="form-row">
+        <div class="field-group"><div class="field-label">Belopp (kr)</div><input type="number" id="add-amt" placeholder="t.ex. 15 000" min="0"></div>
+        <div class="field-group"><div class="field-label">Ränta per år (%)</div><input type="number" id="add-rate" placeholder="t.ex. 20" min="0" max="100" step="0.1"></div>
+        <div class="field-group"><div class="field-label">Betalning/mån (kr)</div><input type="number" id="add-pay" placeholder="Minimibetalning" min="0"></div>
+      </div>
+      <button class="btn btn-dark" style="height:44px;font-size:14px;" onclick="addDebt()">+ Lägg till skuld</button>
+    </div>
+    <div class="total-summary" id="total-box" style="display:none;">
+      <div class="total-row"><span class="total-lbl">Total skuld</span><span class="total-val" id="tot-debt">—</span></div>
+      <div class="total-row"><span class="total-lbl">Total månadsbetalning</span><span class="total-val" id="tot-pay">—</span></div>
+      <div class="total-row"><span class="total-lbl" style="font-weight:500;">Skuldfri</span><span class="total-date" id="tot-date">—</span></div>
+    </div>
+    <button class="btn btn-teal" id="to-strat-btn" style="display:none;" onclick="switchTab('strategy')">Se min strategi →</button>
+  </div>
+
+  <div id="view-strategy" class="page-inner" style="display:none;">
+    <div class="page-title">Välj din strategi</div>
+    <div class="page-sub">Alla tre tar dig i mål — men på olika sätt.</div>
+    <div class="strat-cards">
+      <div class="strat-card selected" onclick="pickStrategy('avalanche',this)">
+        <div class="strat-head"><div class="strat-name">Avalanche</div><div class="strat-badge badge-rec">Rekommenderas</div></div>
+        <div class="strat-desc">Betala av den dyraste skulden (högst ränta) först. Du sparar mest pengar totalt.</div>
+      </div>
+      <div class="strat-card" onclick="pickStrategy('snowball',this)">
+        <div class="strat-head"><div class="strat-name">Snowball</div><div class="strat-badge badge-mot">Motiverande</div></div>
+        <div class="strat-desc">Betala av den minsta skulden först. Du ser snabbast att skulder försvinner helt.</div>
+      </div>
+      <div class="strat-card" onclick="pickStrategy('balanced',this)">
+        <div class="strat-head"><div class="strat-name">Balanserad</div><div class="strat-badge badge-bal">Mellanalternativ</div></div>
+        <div class="strat-desc">Fördelar extra betalningar jämnt. Lättast att hålla koll på varje månad.</div>
+      </div>
+    </div>
+    <div class="compare-box"><div class="compare-header">Skuldfrihetsdatum per strategi</div><div id="compare-rows"></div></div>
+    <div class="order-section"><div class="order-label">Betala i den här ordningen</div><div class="order-list" id="order-list"></div></div>
+    <button class="btn btn-teal" onclick="switchTab('ackord')">Se ackordsanalys →</button>
+  </div>
+
+  <div id="view-ackord" class="page-inner" style="display:none;">
+    <div class="page-title">Ackordsanalys</div>
+    <div class="page-sub">Välj hur du vill komma igång.</div>
+
+    <!-- STEP 1: VAL AV METOD -->
+    <!-- ACKORD-GUIDE SEKTION -->
+    <div class="ackord-guide-section" id="ackord-info-section">
+      <button class="ackord-info-toggle" onclick="toggleAckordInfo()">
+        <span>Vad är ett ackord och hur fungerar det?</span>
+        <div class="faq-chevron" id="ackord-info-chevron"></div>
+      </button>
+      <div class="ackord-info-body" id="ackord-info-body" style="display:none;">
+
+        <div class="ack-intro-text">
+          En ackordsuppgörelse är en frivillig överenskommelse där du betalar en del av din skuld som slutbetalning — och resten skrivs av. Det är helt lagligt, kräver inga domstolsbeslut och kan ofta göras direkt med inkassobolaget via telefon och e-post.
+        </div>
+
+        <div class="ack-blocks">
+
+          <div class="ack-block">
+            <div class="ack-block-icon" style="background:var(--teal-light);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0d7a5f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+            </div>
+            <div>
+              <div class="ack-block-title">Varför går inkassobolag med på det?</div>
+              <div class="ack-block-text">Inkassobolag köper gamla skulder för 5–20% av ursprungsvärdet. En skuld på 50 000 kr kan ha kostat dem 6 000 kr. Erbjuder du 18 000 kr gör de fortfarande en bra affär — och slipper jaga betalningen i ytterligare år. Ju äldre skulden är, desto mer motiverade är de att avsluta den snabbt.</div>
+            </div>
+          </div>
+
+          <div class="ack-block">
+            <div class="ack-block-icon" style="background:var(--amber-light);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c97a1a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            </div>
+            <div>
+              <div class="ack-block-title">Tre faktorer som styr din ackordschans</div>
+              <div class="ack-block-text">
+                <div class="ack-factor"><div class="ack-factor-dot" style="background:var(--teal-mid);"></div><div><strong>Skuldens ålder</strong> — äldre skulder har mer upplupen ränta och lägre inköpspris för inkassobolaget. Skulder äldre än 18–24 månader har generellt hög ackordschans.</div></div>
+                <div class="ack-factor"><div class="ack-factor-dot" style="background:var(--amber);"></div><div><strong>Din betalningsförmåga</strong> — har du begränsad inkomst eller inga utmätningsbara tillgångar stärker det din förhandlingsposition. Inkassobolaget vet att alternativet är att få ingenting.</div></div>
+                <div class="ack-factor"><div class="ack-factor-dot" style="background:var(--purple);"></div><div><strong>Skuldens status</strong> — skulder hos Kronofogden (BF eller UTM) är oftast mer förhandlingsbara än nyare inkassoskulder, eftersom borgenären vill avsluta ärendet.</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ack-block">
+            <div class="ack-block-icon" style="background:var(--purple-light);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4a3ab7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            </div>
+            <div>
+              <div class="ack-block-title">Viktigt: du förhandlar inte med Kronofogden</div>
+              <div class="ack-block-text">Ett vanligt missförstånd är att tro att man förhandlar med Kronofogden. Det gör man inte — Kronofogden är bara en indrivningsmyndighet. Du förhandlar alltid med den som <em>äger</em> skulden — det vill säga inkassobolaget eller ursprunglig borgenär. Fråga alltid vem som faktiskt äger din skuld innan du ringer.</div>
+            </div>
+          </div>
+
+          <div class="ack-block">
+            <div class="ack-block-icon" style="background:var(--teal-light);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0d7a5f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            </div>
+            <div>
+              <div class="ack-block-title">Hur ackordets påverkar din kreditvärdighet</div>
+              <div class="ack-block-text">En ackordsuppgörelse i sig registreras inte hos kreditupplysningsbolag och syns alltså inte som en negativ händelse. Det som förbättrar din kreditvärdighet är att du blir skuldfri — färre skulder, lägre skuldbelopp och i förlängningen att betalningsanmärkningar faller bort (efter 3 år för privata skulder, 5 år för skulder hos KFM).</div>
+            </div>
+          </div>
+
+          <div class="ack-block">
+            <div class="ack-block-icon" style="background:var(--red-soft);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c94a2e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <div>
+              <div class="ack-block-title">Tre misstag att undvika</div>
+              <div class="ack-block-text">
+                <div class="ack-factor"><div class="ack-factor-dot" style="background:var(--red);"></div><div>Begär <em>mer</em> än du förväntar dig att få — ackordsförhandlingar är kompromisser och du hamnar alltid lägre än ditt öppningsbud.</div></div>
+                <div class="ack-factor"><div class="ack-factor-dot" style="background:var(--red);"></div><div>Betala aldrig utan skriftlig bekräftelse. Muntliga löften gäller inte — kräv alltid ett skriftligt avtal innan du swishar ett öre.</div></div>
+                <div class="ack-factor"><div class="ack-factor-dot" style="background:var(--red);"></div><div>Kontakta inte kundtjänst — fråga specifikt efter ackordsansvarig eller förlikningsavdelningen. Det är en annan person med annan beslutsbehörighet.</div></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="ack-cta-bar">
+          <div class="ack-cta-text">Redo att se vad dina skulder kan förhandlas ner till?</div>
+          <button class="btn btn-teal" style="width:auto;padding:0 24px;height:44px;font-size:14px;" onclick="document.getElementById('ackord-info-body').style.display='none';document.getElementById('ack-method-choice').scrollIntoView({behavior:'smooth'});">Analysera mina skulder →</button>
+        </div>
+
+      </div>
+    </div>
+
+    <div id="ack-step-upload">
+
+      <!-- METODVAL -->
+      <div id="ack-method-choice">
+        <div class="method-grid">
+          <div class="method-card" onclick="showAckordMethod('manual')">
+            <div class="method-icon" style="background:var(--teal-light);">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0d7a5f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </div>
+            <div class="method-title">Fyll i manuellt</div>
+            <div class="method-desc">Ange skulder, belopp och ålder direkt. Snabbast att komma igång.</div>
+            <div class="method-tag" style="background:var(--teal-light);color:var(--teal);">Direkt</div>
+          </div>
+          <div class="method-card" onclick="showAckordMethod('uc')">
+            <div class="method-icon" style="background:var(--purple-light);">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4a3ab7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            </div>
+            <div class="method-title">Ladda upp UC-rapport</div>
+            <div class="method-desc">Vi läser av din rapport automatiskt. Mer träffsäkert ackordsförslag.</div>
+            <div class="method-tag" style="background:var(--purple-light);color:var(--purple);">Mer exakt</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MANUELL INMATNING -->
+      <div id="ack-manual-form" style="display:none;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;">
+          <button onclick="showAckordMethod(null)" style="background:none;border:none;cursor:pointer;color:var(--ink-muted);font-size:13px;font-family:inherit;padding:0;">← Tillbaka</button>
+        </div>
+
+        <div id="ack-manual-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;"></div>
+
+        <div class="add-form">
+          <div class="add-form-title">Lägg till en skuld</div>
+
+          <div class="form-row" style="grid-template-columns:1fr 1fr;margin-bottom:14px;">
+            <div class="field-group" style="margin:0;">
+              <div class="field-label">Belopp (kr)</div>
+              <input type="number" id="ack-amt" placeholder="t.ex. 25 000" min="0">
+            </div>
+            <div class="field-group" style="margin:0;">
+              <div class="field-label">
+                Förfallodatum
+                <span style="font-size:10px;color:var(--ink-muted);font-weight:300;">datumet skulden förföll</span>
+              </div>
+              <input type="date" id="ack-date" max="">
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label">Skuldens nuvarande status</div>
+            <div class="status-grid" id="ack-status-grid">
+              <div class="status-card" data-status="inkasso" data-rate="20" onclick="pickAckStatus(this)">
+                <div class="status-card-title">Inkasso</div>
+                <div class="status-card-desc">Hos inkassobolag, ej hos KFM</div>
+              </div>
+              <div class="status-card" data-status="BF" data-rate="8" onclick="pickAckStatus(this)">
+                <div class="status-card-title">Betalningsföreläggande</div>
+                <div class="status-card-desc">Kronofogden har utfärdat BF</div>
+              </div>
+              <div class="status-card" data-status="UTM" data-rate="8" onclick="pickAckStatus(this)">
+                <div class="status-card-title">Utmätning</div>
+                <div class="status-card-desc">KFM driver aktivt utmätning</div>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn btn-dark" style="height:44px;font-size:14px;" onclick="addAckDebt()">+ Lägg till skuld</button>
+        </div>
+
+        <button class="btn btn-teal" id="ack-manual-submit" style="display:none;" onclick="submitManualAckord()">Analysera mina skulder →</button>
+      </div>
+
+      <!-- UC UPLOAD -->
+      <div id="ack-uc-form" style="display:none;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+          <button onclick="showAckordMethod(null)" style="background:none;border:none;cursor:pointer;color:var(--ink-muted);font-size:13px;font-family:inherit;padding:0;">← Tillbaka</button>
+        </div>
+        <div class="ackord-intro">
+          <div class="ackord-intro-title">Varför UC-rapporten?</div>
+          <div class="ackord-intro-text">Med din UC-rapport ser vi skuldens exakta ålder, ursprungsbelopp, upplupen ränta och nuvarande innehavare — och ger ett mer träffsäkert ackordsförslag.</div>
+        </div>
+        <div class="uc-steps">
+          <div class="uc-step-item">
+            <div class="uc-step-num">1</div>
+            <div class="uc-step-body">
+              <div class="uc-step-title">Hämta din UC-rapport gratis</div>
+              <div class="uc-step-desc">Gratis en gång per år med BankID. Tar ca 2 minuter.</div>
+              <a href="https://www.minuc.se/min-upplysning" target="_blank" class="uc-link">Hämta på minuc.se →</a>
+            </div>
+          </div>
+          <div class="uc-step-item">
+            <div class="uc-step-num">2</div>
+            <div class="uc-step-body">
+              <div class="uc-step-title">Ladda ned som PDF</div>
+              <div class="uc-step-desc">Välj "Ladda ned som PDF" på UC:s sida.</div>
+            </div>
+          </div>
+          <div class="uc-step-item">
+            <div class="uc-step-num">3</div>
+            <div class="uc-step-body">
+              <div class="uc-step-title">Ladda upp här — vi analyserar direkt</div>
+              <div class="uc-step-desc">Bearbetas lokalt. Ingenting lagras på server.</div>
+            </div>
+          </div>
+        </div>
+        <div class="upload-zone" id="upload-zone" onclick="document.getElementById('uc-file').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleDrop(event)">
+          <div class="upload-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <div class="upload-title">Dra hit din UC-rapport eller klicka för att välja</div>
+          <div class="upload-sub">PDF-format · Bearbetas lokalt · Lagras aldrig</div>
+          <input type="file" id="uc-file" accept=".pdf" style="display:none" onchange="handleFileSelect(event)">
+        </div>
+        <div class="upload-privacy">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Bearbetas enbart i din webbläsare. Ingen data skickas till våra servrar.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- STEP 2: PARSING LOADER -->
+    <div id="ack-step-parsing" style="display:none;">
+      <div class="parsing-box">
+        <div class="parsing-spinner"></div>
+        <div class="parsing-title">Analyserar din UC-rapport...</div>
+        <div class="parsing-steps" id="parsing-steps">
+          <div class="ps-item active" id="ps1">Läser PDF-innehåll</div>
+          <div class="ps-item" id="ps2">Identifierar skulder och belopp</div>
+          <div class="ps-item" id="ps3">Beräknar ackordschans per skuld</div>
+          <div class="ps-item" id="ps4">Genererar ackordsförslag</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3: RESULTS -->
+    <div id="ack-step-results" style="display:none;">
+      <div class="uc-parsed-banner" id="uc-banner"></div>
+      <div class="ackord-list" id="ackord-list"></div>
+
+      <div class="premium-gate" id="prem-gate" style="display:none;">
+        <div class="pg-title">Lås upp steg-för-steg-guiden</div>
+        <div class="pg-sub">Konkreta steg, manus för att ringa rätt person, och en färdig brevmall — anpassad till varje skuld baserat på din UC-rapport.</div>
+        <div class="pg-price">99 kr</div>
+        <div class="pg-price-sub">engångsbelopp · ingen prenumeration</div>
+        <button class="btn btn-amber" style="width:280px;margin:0 auto;display:block;" onclick="unlockPremium()">Lås upp ackordsguiden →</button>
+        <div class="pg-fine">Inte nöjd? Pengarna tillbaka inom 14 dagar.</div>
+      </div>
+
+      <div id="ackord-guide" style="display:none;">
+        <div style="font-family:'DM Serif Display',serif;font-size:24px;letter-spacing:-0.5px;margin-bottom:6px;">Steg-för-steg-guide</div>
+        <div style="font-size:14px;color:var(--ink-soft);font-weight:300;margin-bottom:24px;">Baserad på din UC-rapport · Mål: betala 35–50% som engångsuppgörelse</div>
+        <div class="guide-section">
+          <div class="guide-item"><div class="guide-num">1</div><div><div class="guide-title">Du har redan rapporten — det är din fördel</div><div class="guide-desc">Du vet nu exakt hur gammal skulden är och vad inkassobolaget betalade för den. Använd det. En 3 år gammal skuld köptes troligtvis för 10–20% av ursprungsvärdet.</div><div class="guide-tag tag-teal">Din data</div></div></div>
+          <div class="guide-item"><div class="guide-num">2</div><div><div class="guide-title">Ring — fråga specifikt efter ackordsansvarig</div><div class="guide-desc">Fråga inte efter kundtjänst. Säg: "Jag vill prata med någon som hanterar ackordsuppgörelser." Nämn att du överväger skuldsanering via Kronofogden.</div><div class="guide-tag tag-purple">Samtal</div></div></div>
+          <div class="guide-item"><div class="guide-num">3</div><div><div class="guide-title">Skicka brevmallen nedan</div><div class="guide-desc">Brevmallen är förifylld med dina belopp från UC-rapporten. Anpassa med ditt namn och skuld-ID från rapporten.</div><div class="guide-tag tag-teal">Mall nedan</div></div></div>
+          <div class="guide-item"><div class="guide-num">4</div><div><div class="guide-title">Kräv skriftlig bekräftelse innan du betalar</div><div class="guide-desc">Muntliga löften gäller inte. Ackord måste bekräftas skriftligt — e-post räcker, men bevara det.</div><div class="guide-tag tag-teal">Dokument</div></div></div>
+        </div>
+        <div class="template-box">
+          <div class="template-label">Brevmall — förifylld med dina uppgifter</div>
+          <div class="template-text" id="ackord-template-text"></div>
+          <button class="copy-btn" onclick="copyTpl()">Kopiera mall →</button>
+        </div>
+      </div>
+
+      <div style="margin-top:20px;">
+        <button class="btn btn-ghost" style="width:auto;padding:0 20px;" onclick="resetAckord()">← Börja om</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- REGISTER -->
+
+<!-- BUDGET -->
+<div class="page" id="page-budget">
+  <div class="budget-wrap">
+    <div class="budget-header">
+      <button onclick="history.back(); showPage('home')" class="back-btn">← Tillbaka</button>
+      <div class="section-label">Budgetsimulator</div>
+      <h2 class="about-title">Vad kan du betala per månad?</h2>
+      <p style="font-size:15px;color:var(--ink-soft);font-weight:300;margin-top:8px;max-width:520px;">Fyll i din inkomst och dina utgifter — vi jämför med svenska genomsnittsbudgetar och visar vad du kan frigöra till skuldbetalningar.</p>
+    </div>
+
+    <div class="budget-grid">
+
+      <!-- VÄNSTER: INMATNING -->
+      <div class="budget-left">
+
+        <div class="budget-section-title">Din inkomst</div>
+        <div class="budget-card">
+          <div class="budget-row">
+            <label class="budget-label">Nettoinkomst per månad (kr efter skatt)</label>
+            <input type="number" id="b-income" placeholder="t.ex. 22 000" min="0" oninput="updateBudget()">
+          </div>
+          <div class="budget-row" style="margin-bottom:0;">
+            <label class="budget-label">Eventuellt bidrag (a-kassa, försörjningsstöd, etc.)</label>
+            <input type="number" id="b-benefit" placeholder="0" min="0" oninput="updateBudget()">
+          </div>
+        </div>
+
+        <div class="budget-section-title">Fasta utgifter</div>
+        <div class="budget-card">
+          <div class="budget-row">
+            <label class="budget-label">Boende (hyra/avgift/bolån per mån)</label>
+            <div class="budget-input-wrap">
+              <input type="number" id="b-rent" placeholder="8 000" min="0" oninput="updateBudget()">
+              <span class="budget-avg" id="avg-rent">Snitt: 8 000 kr</span>
+            </div>
+          </div>
+          <div class="budget-row">
+            <label class="budget-label">Mat och livsmedel</label>
+            <div class="budget-input-wrap">
+              <input type="number" id="b-food" placeholder="3 500" min="0" oninput="updateBudget()">
+              <span class="budget-avg" id="avg-food">Snitt: 3 500 kr</span>
+            </div>
+          </div>
+          <div class="budget-row">
+            <label class="budget-label">Transport (kollektivt/bil/bränsle)</label>
+            <div class="budget-input-wrap">
+              <input type="number" id="b-transport" placeholder="2 500" min="0" oninput="updateBudget()">
+              <span class="budget-avg" id="avg-transport">Snitt: 2 500 kr</span>
+            </div>
+          </div>
+          <div class="budget-row">
+            <label class="budget-label">Telefon &amp; internet</label>
+            <div class="budget-input-wrap">
+              <input type="number" id="b-phone" placeholder="500" min="0" oninput="updateBudget()">
+              <span class="budget-avg">Snitt: 500 kr</span>
+            </div>
+          </div>
+          <div class="budget-row">
+            <label class="budget-label">Försäkringar</label>
+            <div class="budget-input-wrap">
+              <input type="number" id="b-insurance" placeholder="600" min="0" oninput="updateBudget()">
+              <span class="budget-avg">Snitt: 600 kr</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="budget-section-title">Rörliga utgifter</div>
+        <div class="budget-card">
+          <div class="budget-row">
+            <label class="budget-label">Kläder &amp; hygien</label>
+            <div class="budget-input-wrap">
+              <input type="number" id="b-clothes" placeholder="800" min="0" oninput="updateBudget()">
+              <span class="budget-avg">Snitt: 800 kr</span>
+            </div>
+          </div>
+          <div class="budget-row">
+            <label class="budget-label">Nöjen &amp; fritid</label>
+            <div class="budget-input-wrap">
+              <input type="number" id="b-leisure" placeholder="1 200" min="0" oninput="updateBudget()">
+              <span class="budget-avg">Snitt: 1 200 kr</span>
+            </div>
+          </div>
+          <div class="budget-row" style="margin-bottom:0;">
+            <label class="budget-label">Övrigt (prenumerationer, barn, husdjur, etc.)</label>
+            <div class="budget-input-wrap">
+              <input type="number" id="b-other" placeholder="500" min="0" oninput="updateBudget()">
+              <span class="budget-avg">Snitt: 500 kr</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- HÖGER: RESULTAT -->
+      <div class="budget-right">
+        <div class="budget-result-card" id="budget-result-card">
+
+          <div class="budget-result-section">
+            <div class="budget-result-label">Inkomst per månad</div>
+            <div class="budget-result-value" id="br-income">0 kr</div>
+          </div>
+
+          <div class="budget-result-section">
+            <div class="budget-result-label">Totala utgifter</div>
+            <div class="budget-result-value" id="br-expenses" style="color:var(--red);">0 kr</div>
+          </div>
+
+          <div class="budget-divider"></div>
+
+          <div class="budget-result-section">
+            <div class="budget-result-label">Kvar efter utgifter</div>
+            <div class="budget-result-big" id="br-left">0 kr</div>
+          </div>
+
+          <div id="br-recommendation" style="display:none;" class="budget-rec">
+            <div class="budget-rec-title" id="br-rec-title"></div>
+            <div class="budget-rec-text" id="br-rec-text"></div>
+          </div>
+
+          <div id="br-breakdown" style="display:none;">
+            <div class="budget-breakdown-label">Dina utgifter vs svenska genomsnittet</div>
+            <div id="br-bars"></div>
+          </div>
+
+          <div id="br-cta" style="display:none; margin-top:20px;">
+            <button class="btn btn-teal" onclick="sendBudgetToCalc()">Använd detta belopp i kalkylatorn →</button>
+            <div style="font-size:11px;color:var(--ink-muted);text-align:center;margin-top:8px;">Vi fyller i din betalningsförmåga direkt</div>
+          </div>
+
+          <div id="br-premium" style="display:none;" class="budget-premium">
+            <div class="budget-premium-title">Optimera din budget</div>
+            <div class="budget-premium-text">Vi analyserar varje kategori och visar exakt var du kan spara — och hur många månader tidigare du kan vara skuldfri.</div>
+            <button class="btn btn-amber" onclick="unlockBudgetOptimize()">Lås upp budgetoptimering — 49 kr →</button>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <footer style="margin-top:40px;">© 2025 Skuldportalen &nbsp;·&nbsp; Inte en bank. Inte ett inkassobolag. En plattform som är på din sida.</footer>
+</div>
+
+<div class="page" id="page-register">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-logo">Skuld<span>portalen</span></div>
+      <div class="auth-title">Skapa konto</div>
+      <div class="auth-sub">Spara din prognos och hantera alla skulder på ett ställe. Gratis.</div>
+      <div class="field-group"><div class="field-label">Namn</div><input type="text" id="reg-name" placeholder="Ditt namn"></div>
+      <div class="field-group"><div class="field-label">E-postadress</div><input type="email" id="reg-email" placeholder="din@email.se"></div>
+      <div class="field-group" style="margin-bottom:20px;"><div class="field-label">Lösenord</div><input type="password" id="reg-pw" placeholder="Minst 8 tecken"></div>
+      <button class="btn btn-teal" onclick="register()">Skapa konto gratis →</button>
+      <div class="auth-divider"><div class="auth-divider-line"></div><div class="auth-divider-text">eller</div><div class="auth-divider-line"></div></div>
+      <button class="btn btn-ghost" onclick="showPage('login')">Logga in på befintligt konto</button>
+      <div class="auth-terms">Genom att skapa konto godkänner du våra <a href="#" style="color:var(--teal);">villkor</a> och <a href="#" style="color:var(--teal);">integritetspolicy</a>.</div>
+    </div>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div class="page" id="page-login">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-logo">Skuld<span>portalen</span></div>
+      <div class="auth-title">Välkommen tillbaka</div>
+      <div class="auth-sub">Logga in för att se din prognos och dina skulder.</div>
+      <div class="field-group"><div class="field-label">E-postadress</div><input type="email" id="log-email" placeholder="din@email.se"></div>
+      <div class="field-group" style="margin-bottom:20px;"><div class="field-label">Lösenord</div><input type="password" id="log-pw" placeholder="Ditt lösenord"></div>
+      <button class="btn btn-teal" onclick="login()">Logga in →</button>
+      <div class="auth-divider"><div class="auth-divider-line"></div><div class="auth-divider-text">eller</div><div class="auth-divider-line"></div></div>
+      <button class="btn btn-ghost" onclick="showPage('register')">Skapa nytt konto</button>
+      <div class="auth-switch"><a onclick="showPage('register')">Glömt lösenord?</a></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+var b=atob("Cgpjb25zdCBDT0xPUlMgPSBbJyMwZDdhNWYnLCcjN2Y3N2RkJywnI2M5N2ExYScsJyNjOTRhMmUnLCcjMWFhYjg0JywnIzNhODZjOCddOwpjb25zdCBNTiA9IFsnamFudWFyaScsJ2ZlYnJ1YXJpJywnbWFycycsJ2FwcmlsJywnbWFqJywnanVuaScsJ2p1bGknLCdhdWd1c3RpJywnc2VwdGVtYmVyJywnb2t0b2JlcicsJ25vdmVtYmVyJywnZGVjZW1iZXInXTsKbGV0IGRlYnRzID0gW10sIHN0cmF0ZWd5ID0gJ2F2YWxhbmNoZScsIHByZW1pdW1PbiA9IGZhbHNlLCB1c2VyID0gbnVsbCwgc2VsVHlwZSA9IHtuYW1lOidBbm5hdCcscmF0ZToxOH07CgpmdW5jdGlvbiBzYXZlU3RhdGUoKSB7CiAgdHJ5IHsKICAgIGxvY2FsU3RvcmFnZS5zZXRJdGVtKCdzcF9kZWJ0cycsIEpTT04uc3RyaW5naWZ5KGRlYnRzKSk7CiAgICBsb2NhbFN0b3JhZ2Uuc2V0SXRlbSgnc3Bfc3RyYXRlZ3knLCBzdHJhdGVneSk7CiAgICBsb2NhbFN0b3JhZ2Uuc2V0SXRlbSgnc3BfcHJlbWl1bScsIHByZW1pdW1PbiA/ICcxJyA6ICcwJyk7CiAgICBpZiAodXNlcikgbG9jYWxTdG9yYWdlLnNldEl0ZW0oJ3NwX3VzZXInLCBKU09OLnN0cmluZ2lmeSh1c2VyKSk7CiAgICBlbHNlIGxvY2FsU3RvcmFnZS5yZW1vdmVJdGVtKCdzcF91c2VyJyk7CiAgfSBjYXRjaChlKSB7fQp9CgpmdW5jdGlvbiBsb2FkU3RhdGUoKSB7CiAgdHJ5IHsKICAgIGNvbnN0IGQgPSBsb2NhbFN0b3JhZ2UuZ2V0SXRlbSgnc3BfZGVidHMnKTsKICAgIGlmIChkKSBkZWJ0cyA9IEpTT04ucGFyc2UoZCk7CiAgICBjb25zdCBzID0gbG9jYWxTdG9yYWdlLmdldEl0ZW0oJ3NwX3N0cmF0ZWd5Jyk7CiAgICBpZiAocykgc3RyYXRlZ3kgPSBzOwogICAgY29uc3QgcCA9IGxvY2FsU3RvcmFnZS5nZXRJdGVtKCdzcF9wcmVtaXVtJyk7CiAgICBpZiAocCkgcHJlbWl1bU9uID0gcCA9PT0gJzEnOwogICAgY29uc3QgdSA9IGxvY2FsU3RvcmFnZS5nZXRJdGVtKCdzcF91c2VyJyk7CiAgICBpZiAodSkgeyB1c2VyID0gSlNPTi5wYXJzZSh1KTsgfQogIH0gY2F0Y2goZSkge30KfQoKbG9hZFN0YXRlKCk7CmlmICh1c2VyKSB7CiAgZG9jdW1lbnQuYWRkRXZlbnRMaXN0ZW5lcigiRE9NQ29udGVudExvYWRlZCIsIGZ1bmN0aW9uKCkgewogICAgdXBkYXRlTmF2KCk7CiAgICBpZiAoZGVidHMubGVuZ3RoKSByZW5kZXJBbGwoKTsKICB9KTsKfQoKZnVuY3Rpb24gc2hvd1BhZ2UocCkgewogIGRvY3VtZW50LnF1ZXJ5U2VsZWN0b3JBbGwoJy5wYWdlJykuZm9yRWFjaCh4PT54LmNsYXNzTGlzdC5yZW1vdmUoJ2FjdGl2ZScpKTsKICBjb25zdCB0YXJnZXQgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgncGFnZS0nK3ApOwogIGlmICghdGFyZ2V0KSByZXR1cm47CiAgdGFyZ2V0LmNsYXNzTGlzdC5hZGQoJ2FjdGl2ZScpOwogIHdpbmRvdy5zY3JvbGxUbygwLDApOwogIGlmIChwID09PSAnZGVidHMnKSB7IHJlbmRlckFsbCgpOyBzd2l0Y2hUYWIoJ2RlYnRzJyk7IH0KfQpmdW5jdGlvbiBzZXREZWZhdWx0UmF0ZSgpIHsgY29uc3QgaT1kb2N1bWVudC5nZXRFbGVtZW50QnlJZCgncmF0ZScpOyBpLnZhbHVlPTIwOyBpLmNsYXNzTGlzdC5hZGQoJ2hhcy12YWx1ZScpOyB9Cgpkb2N1bWVudC5xdWVyeVNlbGVjdG9yQWxsKCdpbnB1dCcpLmZvckVhY2goaSA9PiBpLmFkZEV2ZW50TGlzdGVuZXIoJ2lucHV0JywgZnVuY3Rpb24oKXsKICB0aGlzLmNsYXNzTGlzdC50b2dnbGUoJ2hhcy12YWx1ZScsICEhdGhpcy52YWx1ZSk7Cn0pKTsKCmZ1bmN0aW9uIGZyZWVEYXRlKGRlYnQsIHJhdGUsIHBheSkgewogIGNvbnN0IHIgPSByYXRlLzEwMC8xMjsKICBpZiAocj09PTApIHsgY29uc3QgbT1NYXRoLmNlaWwoZGVidC9wYXkpOyByZXR1cm4ge21vbnRoczptLCBwYWlkOnBheSptfTsgfQogIGlmIChwYXkgPD0gZGVidCpyKSByZXR1cm4gbnVsbDsKICBsZXQgYj1kZWJ0LCBtPTAsIHBhaWQ9MDsKICB3aGlsZSAoYj4wLjAxICYmIG08NjAwKSB7IGNvbnN0IGludD1iKnI7IGItPU1hdGgubWluKHBheS1pbnQsYik7IHBhaWQrPU1hdGgubWluKHBheSxiK01hdGgubWluKHBheS1pbnQsYikraW50KTsgbSsrOyB9CiAgcmV0dXJuIHttb250aHM6bSwgcGFpZDpNYXRoLnJvdW5kKHBhaWQpfTsKfQpmdW5jdGlvbiB0b0RhdGUobSkgeyBjb25zdCBkPW5ldyBEYXRlKCk7IGQuc2V0TW9udGgoZC5nZXRNb250aCgpK20pOyByZXR1cm4gTU5bZC5nZXRNb250aCgpXSsnICcrZC5nZXRGdWxsWWVhcigpOyB9CmZ1bmN0aW9uIGZtdChuKSB7IHJldHVybiBNYXRoLnJvdW5kKG4pLnRvTG9jYWxlU3RyaW5nKCdzdi1TRScpOyB9CgpmdW5jdGlvbiBjYWxjdWxhdGUoKSB7CiAgY29uc3QgZD1wYXJzZUZsb2F0KGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdkZWJ0JykudmFsdWUpOwogIGNvbnN0IHI9cGFyc2VGbG9hdChkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgncmF0ZScpLnZhbHVlKTsKICBjb25zdCBwPXBhcnNlRmxvYXQoZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3BheW1lbnQnKS52YWx1ZSk7CiAgaWYgKCFkfHxpc05hTihyKXx8IXApIHsgYWxlcnQoJ0Z5bGwgaSBhbGxhIHRyZSBmw6RsdGVuLicpOyByZXR1cm47IH0KICBjb25zdCBib3g9ZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3Jlc3VsdCcpOwogIGJveC5jbGFzc0xpc3QuYWRkKCd2aXNpYmxlJyk7CiAgY29uc3QgcmVzPWZyZWVEYXRlKGQscixwKTsKICBpZiAoIXJlcykgewogICAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3Jlc3VsdC1kYXRlJykudGV4dENvbnRlbnQ9J0JldGFsbmluZ2VuIHTDpGNrZXIgaW50ZSByw6RudGFuJzsKICAgIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdyZXN1bHQtc3ViJykudGV4dENvbnRlbnQ9J8OWa2EgbcOlbmFkc2JldGFsbmluZ2VuLic7CiAgICBbJ3Jlcy1tb250aHMnLCdyZXMtaW50ZXJlc3QnLCdyZXMtdG90YWwnLCdyZXMtYm9vc3Qtc3RhdCddLmZvckVhY2goaWQ9PmRvY3VtZW50LmdldEVsZW1lbnRCeUlkKGlkKS50ZXh0Q29udGVudD0n4oCUJyk7CiAgICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgncmVzLWJvb3N0LW1zZycpLnRleHRDb250ZW50PScnOyByZXR1cm47CiAgfQogIGNvbnN0IGJvb3N0PWZyZWVEYXRlKGQscixwKzUwMCk7CiAgY29uc3Qgc2F2ZWQ9Ym9vc3Q/cmVzLm1vbnRocy1ib29zdC5tb250aHM6MDsKICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgncmVzdWx0LWRhdGUnKS50ZXh0Q29udGVudD10b0RhdGUocmVzLm1vbnRocyk7CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3Jlc3VsdC1zdWInKS50ZXh0Q29udGVudD1gb20gZHUgYmV0YWxhciAke2ZtdChwKX0ga3IvbcOlbiBmcsOlbiBvY2ggbWVkIG51YDsKICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgncmVzLW1vbnRocycpLnRleHRDb250ZW50PXJlcy5tb250aHMrJyBtw6VuJzsKICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgncmVzLWludGVyZXN0JykudGV4dENvbnRlbnQ9Zm10KE1hdGgubWF4KDAscmVzLnBhaWQtZCkpKycga3InOwogIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdyZXMtdG90YWwnKS50ZXh0Q29udGVudD1mbXQocmVzLnBhaWQpKycga3InOwogIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdyZXMtYm9vc3Qtc3RhdCcpLnRleHRDb250ZW50PXNhdmVkPjA/J+KIkicrc2F2ZWQrJyBtw6VuJzon4oCUJzsKICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgncmVzLWJvb3N0LW1zZycpLnRleHRDb250ZW50PXNhdmVkPjA/YE1lZCArNTAwIGtyL23DpW4gw6RyIGR1IGtsYXIgcmVkYW4gJHt0b0RhdGUoYm9vc3QubW9udGhzKX0g4oCUICR7c2F2ZWR9IG3DpW5hZGVyIHRpZGlnYXJlLmA6Jyc7CiAgYm94LnNjcm9sbEludG9WaWV3KHtiZWhhdmlvcjonc21vb3RoJyxibG9jazonbmVhcmVzdCd9KTsKfQoKZnVuY3Rpb24gaGFuZGxlU2F2ZSgpIHsgc2hvd1BhZ2UoJ3JlZ2lzdGVyJyk7IH0KZnVuY3Rpb24gaGFuZGxlQWRkTW9yZSgpIHsgdXNlciA/IHNob3dQYWdlKCdkZWJ0cycpIDogc2hvd1BhZ2UoJ3JlZ2lzdGVyJyk7IH0KCmZ1bmN0aW9uIHJlZ2lzdGVyKCkgewogIGNvbnN0IG49ZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3JlZy1uYW1lJykudmFsdWUudHJpbSgpOwogIGNvbnN0IGU9ZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3JlZy1lbWFpbCcpLnZhbHVlLnRyaW0oKTsKICBjb25zdCBwPWRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdyZWctcHcnKS52YWx1ZTsKICBpZiAoIW58fCFlfHxwLmxlbmd0aDw4KSB7IGFsZXJ0KCdGeWxsIGkgbmFtbiwgZS1wb3N0IG9jaCBldHQgbMO2c2Vub3JkIG1lZCBtaW5zdCA4IHRlY2tlbi4nKTsgcmV0dXJuOyB9CiAgdXNlcj17bmFtZTpuLGVtYWlsOmV9OyBzYXZlU3RhdGUoKTsgdXBkYXRlTmF2KCk7IHNob3dQYWdlKCdkZWJ0cycpOwp9CmZ1bmN0aW9uIGxvZ2luKCkgewogIGNvbnN0IGU9ZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2xvZy1lbWFpbCcpLnZhbHVlLnRyaW0oKTsKICBjb25zdCBwPWRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdsb2ctcHcnKS52YWx1ZTsKICBpZiAoIWV8fCFwKSB7IGFsZXJ0KCdGeWxsIGkgZS1wb3N0IG9jaCBsw7ZzZW5vcmQuJyk7IHJldHVybjsgfQogIHVzZXI9e25hbWU6ZS5zcGxpdCgnQCcpWzBdLGVtYWlsOmV9OyBzYXZlU3RhdGUoKTsgdXBkYXRlTmF2KCk7IHNob3dQYWdlKCdkZWJ0cycpOwp9CmZ1bmN0aW9uIGxvZ291dCgpIHsgdXNlcj1udWxsOyBzYXZlU3RhdGUoKTsgdXBkYXRlTmF2KCk7IHNob3dQYWdlKCdob21lJyk7IH0KZnVuY3Rpb24gdXBkYXRlTmF2KCkgewogIGNvbnN0IGxvZ2dlZEluID0gISF1c2VyOwogIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCduYXYtbG9nZ2VkaW4nKS5zdHlsZS5kaXNwbGF5ID0gbG9nZ2VkSW4gPyAnZmxleCcgOiAnbm9uZSc7CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ25hdi1sb2dnZWRvdXQnKS5zdHlsZS5kaXNwbGF5ID0gbG9nZ2VkSW4gPyAnbm9uZScgOiAnZmxleCc7CiAgaWYgKHVzZXIpIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCduYXYtdXNlcm5hbWUnKS50ZXh0Q29udGVudCA9IHVzZXIubmFtZTsKfQoKZnVuY3Rpb24gcGlja1R5cGUoYnRuLG5hbWUscmF0ZSkgewogIGRvY3VtZW50LnF1ZXJ5U2VsZWN0b3JBbGwoJy50eXBlLWJ0bicpLmZvckVhY2goYj0+Yi5jbGFzc0xpc3QucmVtb3ZlKCdzZWxlY3RlZCcpKTsKICBidG4uY2xhc3NMaXN0LmFkZCgnc2VsZWN0ZWQnKTsgc2VsVHlwZT17bmFtZSxyYXRlfTsKICBjb25zdCByaT1kb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnYWRkLXJhdGUnKTsgcmkudmFsdWU9cmF0ZTsgcmkuY2xhc3NMaXN0LnRvZ2dsZSgnaGFzLXZhbHVlJyxyYXRlPjApOwp9CgpmdW5jdGlvbiBhZGREZWJ0KCkgewogIGNvbnN0IGFtdD1wYXJzZUZsb2F0KGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdhZGQtYW10JykudmFsdWUpOwogIGNvbnN0IHJhdGU9cGFyc2VGbG9hdChkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnYWRkLXJhdGUnKS52YWx1ZSl8fDE4OwogIGxldCBwYXk9cGFyc2VGbG9hdChkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnYWRkLXBheScpLnZhbHVlKTsKICBpZiAoIWFtdHx8YW10PD0wKSB7IGFsZXJ0KCdBbmdlIGV0dCBza3VsZGJlbG9wcC4nKTsgcmV0dXJuOyB9CiAgY29uc3QgbXI9cmF0ZS8xMDAvMTI7CiAgaWYgKCFwYXl8fHBheTw9MCkgcGF5PU1hdGgubWF4KE1hdGgucm91bmQoYW10Km1yKjEuMTUrNTApLDEwMCk7CiAgZGVidHMucHVzaCh7aWQ6RGF0ZS5ub3coKSxuYW1lOnNlbFR5cGUubmFtZSxhbW91bnQ6YW10LHJhdGUscGF5bWVudDpwYXksY29sb3I6Q09MT1JTW2RlYnRzLmxlbmd0aCVDT0xPUlMubGVuZ3RoXSxhZ2U6TWF0aC5mbG9vcihNYXRoLnJhbmRvbSgpKjI4KzMpfSk7IHNhdmVTdGF0ZSgpOwogIHJlbmRlckFsbCgpOwogIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdhZGQtYW10JykudmFsdWU9Jyc7CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2FkZC1wYXknKS52YWx1ZT0nJzsKICBkb2N1bWVudC5xdWVyeVNlbGVjdG9yQWxsKCcudHlwZS1idG4nKS5mb3JFYWNoKGI9PmIuY2xhc3NMaXN0LnJlbW92ZSgnc2VsZWN0ZWQnKSk7CiAgc2VsVHlwZT17bmFtZTonQW5uYXQnLHJhdGU6MTh9Owp9CgpmdW5jdGlvbiByZW1vdmVEZWJ0KGlkKSB7IGRlYnRzPWRlYnRzLmZpbHRlcihkPT5kLmlkIT09aWQpOyBzYXZlU3RhdGUoKTsgcmVuZGVyQWxsKCk7IH0KCmZ1bmN0aW9uIHJlbmRlckFsbCgpIHsKICBjb25zdCBsaXN0PWRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdkZWJ0LWxpc3QnKTsKICBjb25zdCBlbXB0eT1kb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnZW1wdHktbXNnJyk7CiAgaWYgKGRlYnRzLmxlbmd0aD09PTApIHsKICAgIGxpc3QuaW5uZXJIVE1MPScnOyBsaXN0LmFwcGVuZENoaWxkKGVtcHR5KTsKICAgIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCd0b3RhbC1ib3gnKS5zdHlsZS5kaXNwbGF5PSdub25lJzsKICAgIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCd0by1zdHJhdC1idG4nKS5zdHlsZS5kaXNwbGF5PSdub25lJzsKICAgIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdwcm9nLWZpbGwnKS5zdHlsZS53aWR0aD0nMCUnOwogICAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3Byb2ctbGFiZWwnKS50ZXh0Q29udGVudD0nMCBza3VsZGVyIHRpbGxhZ2RhJzsgcmV0dXJuOwogIH0KICBpZiAoZW1wdHkucGFyZW50Tm9kZSkgZW1wdHkucGFyZW50Tm9kZS5yZW1vdmVDaGlsZChlbXB0eSk7CiAgbGlzdC5pbm5lckhUTUw9ZGVidHMubWFwKGQ9PmAKICAgIDxkaXYgY2xhc3M9ImRlYnQtaXRlbSI+CiAgICAgIDxkaXYgY2xhc3M9ImRlYnQtY29sb3ItZG90IiBzdHlsZT0iYmFja2dyb3VuZDoke2QuY29sb3J9Ij48L2Rpdj4KICAgICAgPGRpdiBjbGFzcz0iZGVidC1pbmZvIj48ZGl2IGNsYXNzPSJkZWJ0LW5hbWUiPiR7ZC5uYW1lfTwvZGl2PjxkaXYgY2xhc3M9ImRlYnQtbWV0YSI+JHtkLnJhdGV9JSByw6RudGEgwrcgJHtmbXQoZC5wYXltZW50KX0ga3IvbcOlbjwvZGl2PjwvZGl2PgogICAgICA8ZGl2IGNsYXNzPSJkZWJ0LWFtb3VudCI+JHtmbXQoZC5hbW91bnQpfSBrcjwvZGl2PgogICAgICA8YnV0dG9uIGNsYXNzPSJkZWJ0LXJlbW92ZSIgb25jbGljaz0icmVtb3ZlRGVidCgke2QuaWR9KSI+w5c8L2J1dHRvbj4KICAgIDwvZGl2PmApLmpvaW4oJycpOwogIGNvbnN0IHBjdD1NYXRoLm1pbigxMDAsZGVidHMubGVuZ3RoKjIwKTsKICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgncHJvZy1maWxsJykuc3R5bGUud2lkdGg9cGN0KyclJzsKICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgncHJvZy1sYWJlbCcpLnRleHRDb250ZW50PWRlYnRzLmxlbmd0aCsnIHNrdWxkJysoZGVidHMubGVuZ3RoPjE/J2VyJzonJykrJyB0aWxsYWdkJysoZGVidHMubGVuZ3RoPjE/J2EnOicnKTsKICBjb25zdCB0b3REZWJ0PWRlYnRzLnJlZHVjZSgocyxkKT0+cytkLmFtb3VudCwwKTsKICBjb25zdCB0b3RQYXk9ZGVidHMucmVkdWNlKChzLGQpPT5zK2QucGF5bWVudCwwKTsKICBjb25zdCBtYXhNPU1hdGgubWF4KC4uLmRlYnRzLm1hcChkPT57Y29uc3Qgcj1mcmVlRGF0ZShkLmFtb3VudCxkLnJhdGUsZC5wYXltZW50KTtyZXR1cm4gcj9yLm1vbnRoczo2MDA7fSkpOwogIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCd0b3RhbC1ib3gnKS5zdHlsZS5kaXNwbGF5PSdibG9jayc7CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3RvLXN0cmF0LWJ0bicpLnN0eWxlLmRpc3BsYXk9J2Jsb2NrJzsKICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgndG90LWRlYnQnKS50ZXh0Q29udGVudD1mbXQodG90RGVidCkrJyBrcic7CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3RvdC1wYXknKS50ZXh0Q29udGVudD1mbXQodG90UGF5KSsnIGtyL23DpW4nOwogIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCd0b3QtZGF0ZScpLnRleHRDb250ZW50PW1heE08NjAwP3RvRGF0ZShtYXhNKTon4oCUJzsKICByZW5kZXJTdHJhdGVneSgpOyByZW5kZXJBY2tvcmQoKTsKfQoKZnVuY3Rpb24gc3dpdGNoVGFiKG5hbWUpIHsKICBbJ2RlYnRzJywnc3RyYXRlZ3knLCdhY2tvcmQnXS5mb3JFYWNoKHQ9PnsKICAgIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCd0YWItJyt0KS5jbGFzc0xpc3QudG9nZ2xlKCdhY3RpdmUnLHQ9PT1uYW1lKTsKICAgIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCd2aWV3LScrdCkuc3R5bGUuZGlzcGxheT10PT09bmFtZT8nYmxvY2snOidub25lJzsKICB9KTsKICBpZiAobmFtZT09PSdkZWJ0cycpIHJlbmRlckFsbCgpOwogIGlmIChuYW1lPT09J3N0cmF0ZWd5JykgcmVuZGVyU3RyYXRlZ3koKTsKICBpZiAobmFtZT09PSdhY2tvcmQnKSByZW5kZXJBY2tvcmQoKTsKfQoKZnVuY3Rpb24gcGlja1N0cmF0ZWd5KG5hbWUsIGVsKSB7CiAgc3RyYXRlZ3k9bmFtZTsgc2F2ZVN0YXRlKCk7CiAgZG9jdW1lbnQucXVlcnlTZWxlY3RvckFsbCgnLnN0cmF0LWNhcmQnKS5mb3JFYWNoKGM9PmMuY2xhc3NMaXN0LnJlbW92ZSgnc2VsZWN0ZWQnKSk7CiAgZWwuY2xhc3NMaXN0LmFkZCgnc2VsZWN0ZWQnKTsgcmVuZGVyU3RyYXRlZ3koKTsKfQoKZnVuY3Rpb24gcmVuZGVyU3RyYXRlZ3koKSB7CiAgaWYgKCFkZWJ0cy5sZW5ndGgpIHJldHVybjsKICBjb25zdCBjb25maWdzID0gWwogICAge2tleTonYXZhbGFuY2hlJyxsYWJlbDonQXZhbGFuY2hlJyxzb3J0ZWQ6Wy4uLmRlYnRzXS5zb3J0KChhLGIpPT5iLnJhdGUtYS5yYXRlKSxjbHM6J2Jhci10ZWFsJ30sCiAgICB7a2V5Oidzbm93YmFsbCcsbGFiZWw6J1Nub3diYWxsJyxzb3J0ZWQ6Wy4uLmRlYnRzXS5zb3J0KChhLGIpPT5hLmFtb3VudC1iLmFtb3VudCksY2xzOidiYXItcHVycGxlJ30sCiAgICB7a2V5OidiYWxhbmNlZCcsbGFiZWw6J0JhbGFuc2VyYWQnLHNvcnRlZDpbLi4uZGVidHNdLGNsczonYmFyLWFtYmVyJ30KICBdOwogIGNvbnN0IHJlc3VsdHM9Y29uZmlncy5tYXAoYz0+ewogICAgY29uc3QgbT1NYXRoLm1heCguLi5jLnNvcnRlZC5tYXAoZD0+e2NvbnN0IHI9ZnJlZURhdGUoZC5hbW91bnQsZC5yYXRlLGQucGF5bWVudCk7cmV0dXJuIHI/ci5tb250aHM6NjAwO30pKTsKICAgIHJldHVybiB7Li4uYyxtb250aHM6bX07CiAgfSk7CiAgY29uc3QgbWF4TT1NYXRoLm1heCguLi5yZXN1bHRzLm1hcChyPT5yLm1vbnRocykpOwogIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdjb21wYXJlLXJvd3MnKS5pbm5lckhUTUw9cmVzdWx0cy5tYXAocj0+YAogICAgPGRpdiBjbGFzcz0iY29tcGFyZS1yb3cgJHtyLmtleT09PXN0cmF0ZWd5PydhY3RpdmUtcm93JzonJ30iPgogICAgICA8ZGl2IGNsYXNzPSJjb21wYXJlLWxibCI+JHtyLmxhYmVsfTwvZGl2PgogICAgICA8ZGl2IGNsYXNzPSJjb21wYXJlLWJhci1iZyI+PGRpdiBjbGFzcz0iY29tcGFyZS1iYXIgJHtyLmNsc30iIHN0eWxlPSJ3aWR0aDoke01hdGgucm91bmQoci5tb250aHMvbWF4TSoxMDApfSUiPjwvZGl2PjwvZGl2PgogICAgICA8ZGl2IGNsYXNzPSJjb21wYXJlLWRhdGUiPiR7ci5tb250aHM8NjAwP3RvRGF0ZShyLm1vbnRocyk6J+KAlCd9PC9kaXY+CiAgICA8L2Rpdj5gKS5qb2luKCcnKTsKICBjb25zdCBjdXI9cmVzdWx0cy5maW5kKHI9PnIua2V5PT09c3RyYXRlZ3kpOwogIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdvcmRlci1saXN0JykuaW5uZXJIVE1MPWN1ci5zb3J0ZWQubWFwKChkLGkpPT5gCiAgICA8ZGl2IGNsYXNzPSJvcmRlci1pdGVtIj4KICAgICAgPGRpdiBjbGFzcz0ib3JkZXItbnVtIiBzdHlsZT0iYmFja2dyb3VuZDoke2QuY29sb3J9Ij4ke2krMX08L2Rpdj4KICAgICAgPGRpdiBjbGFzcz0ib3JkZXItaW5mbyI+PGRpdiBjbGFzcz0ib3JkZXItbmFtZSI+JHtkLm5hbWV9PC9kaXY+PGRpdiBjbGFzcz0ib3JkZXItbWV0YSI+JHtkLnJhdGV9JSByw6RudGEke2k9PT0wPycgwrcgYmV0YWxhIGF2IGbDtnJzdCc6JyDCtyBkw6RyZWZ0ZXInfTwvZGl2PjwvZGl2PgogICAgICA8ZGl2IGNsYXNzPSJvcmRlci1hbXQiPiR7Zm10KGQuYW1vdW50KX0ga3I8L2Rpdj4KICAgIDwvZGl2PmApLmpvaW4oJycpOwp9CgpmdW5jdGlvbiByZW5kZXJBY2tvcmQoKSB7fQoKbGV0IGFja0RlYnRzID0gW107CmxldCBhY2tTZWxTdGF0dXMgPSBudWxsOwoKLy8gU8OkdHQgbWF4LWRhdHVtIHRpbGwgaWRhZwpkb2N1bWVudC5hZGRFdmVudExpc3RlbmVyKCdET01Db250ZW50TG9hZGVkJywgKCkgPT4gewogIGNvbnN0IGRhdGVJbnB1dCA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdhY2stZGF0ZScpOwogIGlmIChkYXRlSW5wdXQpIGRhdGVJbnB1dC5tYXggPSBuZXcgRGF0ZSgpLnRvSVNPU3RyaW5nKCkuc3BsaXQoJ1QnKVswXTsKfSk7CgpmdW5jdGlvbiBzaG93QWNrb3JkTWV0aG9kKG1ldGhvZCkgewogIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdhY2stbWV0aG9kLWNob2ljZScpLnN0eWxlLmRpc3BsYXkgPSBtZXRob2QgPyAnbm9uZScgOiAnYmxvY2snOwogIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdhY2stbWFudWFsLWZvcm0nKS5zdHlsZS5kaXNwbGF5ID0gbWV0aG9kID09PSAnbWFudWFsJyA/ICdibG9jaycgOiAnbm9uZSc7CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2Fjay11Yy1mb3JtJykuc3R5bGUuZGlzcGxheSA9IG1ldGhvZCA9PT0gJ3VjJyA/ICdibG9jaycgOiAnbm9uZSc7CiAgaWYgKCFtZXRob2QpIHsgYWNrRGVidHMgPSBbXTsgYWNrU2VsU3RhdHVzID0gbnVsbDsgcmVuZGVyQWNrTWFudWFsTGlzdCgpOyB9Cn0KCmZ1bmN0aW9uIHBpY2tBY2tTdGF0dXMoZWwpIHsKICBkb2N1bWVudC5xdWVyeVNlbGVjdG9yQWxsKCcuc3RhdHVzLWNhcmQnKS5mb3JFYWNoKGMgPT4gYy5jbGFzc0xpc3QucmVtb3ZlKCdzZWxlY3RlZCcpKTsKICBlbC5jbGFzc0xpc3QuYWRkKCdzZWxlY3RlZCcpOwogIGFja1NlbFN0YXR1cyA9IHsgc3RhdHVzOiBlbC5kYXRhc2V0LnN0YXR1cywgcmF0ZTogcGFyc2VGbG9hdChlbC5kYXRhc2V0LnJhdGUpIH07Cn0KCmZ1bmN0aW9uIGFnZUZyb21EYXRlKGRhdGVTdHIpIHsKICBpZiAoIWRhdGVTdHIpIHJldHVybiAxMjsKICBjb25zdCB0aGVuID0gbmV3IERhdGUoZGF0ZVN0cik7CiAgY29uc3Qgbm93ID0gbmV3IERhdGUoKTsKICByZXR1cm4gTWF0aC5tYXgoMCwgTWF0aC5yb3VuZCgobm93IC0gdGhlbikgLyAoMTAwMCAqIDYwICogNjAgKiAyNCAqIDMwLjQ0KSkpOwp9CgpmdW5jdGlvbiBzdGF0dXNMYWJlbChzdGF0dXMpIHsKICByZXR1cm4geyBpbmthc3NvOiAnSW5rYXNzbycsIEJGOiAnQmV0YWxuaW5nc2bDtnJlbMOkZ2dhbmRlIChLRk0pJywgVVRNOiAnVXRtw6R0bmluZyAoS0ZNKScgfVtzdGF0dXNdIHx8IHN0YXR1czsKfQoKLy8gU3RhdHVzIHDDpXZlcmthciBhY2tvcmRzY2hhbnMgdXTDtnZlciDDpWxkZXIKZnVuY3Rpb24gYWNrb3JkQ2hhbmNlKGFnZU1vbnRocywgc3RhdHVzKSB7CiAgbGV0IGJhc2UgPSBhZ2VNb250aHMgPj0gMjQgPyA4MCA6IGFnZU1vbnRocyA+PSAxMiA/IDYwIDogYWdlTW9udGhzID49IDYgPyA0MCA6IDIwOwogIC8vIEJGIG9jaCBVVE0gPSBtZXIgZGVzcGVyYXQgYm9yZ2Vuw6RyID0gaMO2Z3JlIGNoYW5zCiAgaWYgKHN0YXR1cyA9PT0gJ0JGJykgYmFzZSA9IE1hdGgubWluKGJhc2UgKyAxMCwgODUpOwogIGlmIChzdGF0dXMgPT09ICdVVE0nKSBiYXNlID0gTWF0aC5taW4oYmFzZSArIDE1LCA5MCk7CiAgcmV0dXJuIGJhc2U7Cn0KCmZ1bmN0aW9uIG9mZmVyUGN0KGFnZU1vbnRocywgc3RhdHVzKSB7CiAgLy8gSnUgw6RsZHJlIG9jaCBqdSBsw6RuZ3JlIGkga2VkamFuLCBkZXN0byBsw6RncmUgZXJianVkYW5kZQogIGxldCBwY3QgPSBhZ2VNb250aHMgPj0gMjQgPyAwLjMwIDogYWdlTW9udGhzID49IDEyID8gMC40MCA6IGFnZU1vbnRocyA+PSA2ID8gMC41MCA6IDAuNjA7CiAgaWYgKHN0YXR1cyA9PT0gJ0JGJykgcGN0ID0gTWF0aC5tYXgocGN0IC0gMC4wNSwgMC4yNSk7CiAgaWYgKHN0YXR1cyA9PT0gJ1VUTScpIHBjdCA9IE1hdGgubWF4KHBjdCAtIDAuMDgsIDAuMjIpOwogIHJldHVybiBwY3Q7Cn0KCmZ1bmN0aW9uIGFkZEFja0RlYnQoKSB7CiAgY29uc3QgYW10ID0gcGFyc2VGbG9hdChkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnYWNrLWFtdCcpLnZhbHVlKTsKICBjb25zdCBkYXRlU3RyID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2Fjay1kYXRlJykudmFsdWU7CiAgaWYgKCFhbXQgfHwgYW10IDw9IDApIHsgYWxlcnQoJ0FuZ2UgZXR0IHNrdWxkYmVsb3BwLicpOyByZXR1cm47IH0KICBpZiAoIWRhdGVTdHIpIHsgYWxlcnQoJ0FuZ2UgZsO2cmZhbGxvZGF0dW0uJyk7IHJldHVybjsgfQogIGlmICghYWNrU2VsU3RhdHVzKSB7IGFsZXJ0KCdWw6RsaiBza3VsZGVucyBudXZhcmFuZGUgc3RhdHVzLicpOyByZXR1cm47IH0KICBjb25zdCBhZ2VNb250aHMgPSBhZ2VGcm9tRGF0ZShkYXRlU3RyKTsKICBjb25zdCBuYW1lID0gc3RhdHVzTGFiZWwoYWNrU2VsU3RhdHVzLnN0YXR1cyk7CiAgYWNrRGVidHMucHVzaCh7CiAgICBpZDogRGF0ZS5ub3coKSwgbmFtZSwgYW1vdW50OiBhbXQsCiAgICByYXRlOiBhY2tTZWxTdGF0dXMucmF0ZSwgYWdlTW9udGhzLAogICAgc3RhdHVzOiBhY2tTZWxTdGF0dXMuc3RhdHVzLCBkdWVEYXRlOiBkYXRlU3RyLAogICAgc291cmNlOiAnbWFudWFsJwogIH0pOwogIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdhY2stYW10JykudmFsdWUgPSAnJzsKICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnYWNrLWRhdGUnKS52YWx1ZSA9ICcnOwogIGRvY3VtZW50LnF1ZXJ5U2VsZWN0b3JBbGwoJy5zdGF0dXMtY2FyZCcpLmZvckVhY2goYyA9PiBjLmNsYXNzTGlzdC5yZW1vdmUoJ3NlbGVjdGVkJykpOwogIGFja1NlbFN0YXR1cyA9IG51bGw7CiAgcmVuZGVyQWNrTWFudWFsTGlzdCgpOwp9CgpmdW5jdGlvbiByZW1vdmVBY2tEZWJ0KGlkKSB7CiAgYWNrRGVidHMgPSBhY2tEZWJ0cy5maWx0ZXIoZCA9PiBkLmlkICE9PSBpZCk7CiAgcmVuZGVyQWNrTWFudWFsTGlzdCgpOwp9CgpmdW5jdGlvbiByZW5kZXJBY2tNYW51YWxMaXN0KCkgewogIGNvbnN0IGxpc3QgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnYWNrLW1hbnVhbC1saXN0Jyk7CiAgY29uc3QgYnRuID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2Fjay1tYW51YWwtc3VibWl0Jyk7CiAgaWYgKGFja0RlYnRzLmxlbmd0aCA9PT0gMCkgeyBsaXN0LmlubmVySFRNTCA9ICcnOyBidG4uc3R5bGUuZGlzcGxheSA9ICdub25lJzsgcmV0dXJuOyB9CiAgY29uc3Qgc3RhdHVzQ29sb3JzID0geyBpbmthc3NvOiAndmFyKC0tYW1iZXIpJywgQkY6ICd2YXIoLS1wdXJwbGUpJywgVVRNOiAndmFyKC0tcmVkKScgfTsKICBsaXN0LmlubmVySFRNTCA9IGFja0RlYnRzLm1hcChkID0+IGAKICAgIDxkaXYgY2xhc3M9ImRlYnQtaXRlbSI+CiAgICAgIDxkaXYgY2xhc3M9ImRlYnQtY29sb3ItZG90IiBzdHlsZT0iYmFja2dyb3VuZDoke3N0YXR1c0NvbG9yc1tkLnN0YXR1c118fCd2YXIoLS10ZWFsKSd9Ij48L2Rpdj4KICAgICAgPGRpdiBjbGFzcz0iZGVidC1pbmZvIj4KICAgICAgICA8ZGl2IGNsYXNzPSJkZWJ0LW5hbWUiPiR7ZC5uYW1lfTwvZGl2PgogICAgICAgIDxkaXYgY2xhc3M9ImRlYnQtbWV0YSI+RsO2cmbDtmxsICR7ZC5kdWVEYXRlfSDCtyAke2QuYWdlTW9udGhzfSBtw6VuYWRlciBzZWRhbjwvZGl2PgogICAgICA8L2Rpdj4KICAgICAgPGRpdiBjbGFzcz0iZGVidC1hbW91bnQiPiR7Zm10KGQuYW1vdW50KX0ga3I8L2Rpdj4KICAgICAgPGJ1dHRvbiBjbGFzcz0iZGVidC1yZW1vdmUiIG9uY2xpY2s9InJlbW92ZUFja0RlYnQoJHtkLmlkfSkiPsOXPC9idXR0b24+CiAgICA8L2Rpdj5gKS5qb2luKCcnKTsKICBidG4uc3R5bGUuZGlzcGxheSA9ICdibG9jayc7Cn0KCmZ1bmN0aW9uIHN1Ym1pdE1hbnVhbEFja29yZCgpIHsKICBpZiAoYWNrRGVidHMubGVuZ3RoID09PSAwKSB7IGFsZXJ0KCdMw6RnZyB0aWxsIG1pbnN0IGVuIHNrdWxkLicpOyByZXR1cm47IH0KICBzaG93QWNrb3JkUmVzdWx0cyhhY2tEZWJ0cywgbnVsbCk7CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2Fjay1zdGVwLXVwbG9hZCcpLnN0eWxlLmRpc3BsYXkgPSAnbm9uZSc7CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2Fjay1zdGVwLXJlc3VsdHMnKS5zdHlsZS5kaXNwbGF5ID0gJ2Jsb2NrJzsKfQoKZnVuY3Rpb24gcmVzZXRBY2tvcmQoKSB7CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2Fjay1zdGVwLXVwbG9hZCcpLnN0eWxlLmRpc3BsYXkgPSAnYmxvY2snOwogIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdhY2stc3RlcC1wYXJzaW5nJykuc3R5bGUuZGlzcGxheSA9ICdub25lJzsKICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnYWNrLXN0ZXAtcmVzdWx0cycpLnN0eWxlLmRpc3BsYXkgPSAnbm9uZSc7CiAgc2hvd0Fja29yZE1ldGhvZChudWxsKTsKICBhY2tEZWJ0cyA9IFtdOwogIHByZW1pdW1PbiA9IGZhbHNlOwogIHNhdmVTdGF0ZSgpOwp9CgpmdW5jdGlvbiBoYW5kbGVEcm9wKGUpIHsKICBlLnByZXZlbnREZWZhdWx0KCk7CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3VwbG9hZC16b25lJykuY2xhc3NMaXN0LnJlbW92ZSgnZHJhZy1vdmVyJyk7CiAgY29uc3QgZmlsZSA9IGUuZGF0YVRyYW5zZmVyLmZpbGVzWzBdOwogIGlmIChmaWxlICYmIGZpbGUudHlwZSA9PT0gJ2FwcGxpY2F0aW9uL3BkZicpIHByb2Nlc3NVQ0ZpbGUoZmlsZSk7CiAgZWxzZSBhbGVydCgnVsOkbmxpZ2VuIGxhZGRhIHVwcCBlbiBQREYtZmlsLicpOwp9CgpmdW5jdGlvbiBoYW5kbGVGaWxlU2VsZWN0KGUpIHsKICBjb25zdCBmaWxlID0gZS50YXJnZXQuZmlsZXNbMF07CiAgaWYgKGZpbGUpIHByb2Nlc3NVQ0ZpbGUoZmlsZSk7Cn0KCmFzeW5jIGZ1bmN0aW9uIHByb2Nlc3NVQ0ZpbGUoZmlsZSkgewogIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdhY2stc3RlcC11cGxvYWQnKS5zdHlsZS5kaXNwbGF5ID0gJ25vbmUnOwogIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdhY2stc3RlcC1wYXJzaW5nJykuc3R5bGUuZGlzcGxheSA9ICdibG9jayc7CgogIC8vIFN0ZWd2aXMgYW5pbWVyaW5nIGF2IHBhcnNpbmctc3RlZ2VuCiAgY29uc3Qgc3RlcHMgPSBbJ3BzMScsJ3BzMicsJ3BzMycsJ3BzNCddOwogIGxldCBzaSA9IDA7CiAgY29uc3Qgc3RlcEludGVydmFsID0gc2V0SW50ZXJ2YWwoKCkgPT4gewogICAgaWYgKHNpID4gMCkgeyBkb2N1bWVudC5nZXRFbGVtZW50QnlJZChzdGVwc1tzaS0xXSkuY2xhc3NMaXN0LnJlbW92ZSgnYWN0aXZlJyk7IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKHN0ZXBzW3NpLTFdKS5jbGFzc0xpc3QuYWRkKCdkb25lJyk7IH0KICAgIGlmIChzaSA8IHN0ZXBzLmxlbmd0aCkgeyBkb2N1bWVudC5nZXRFbGVtZW50QnlJZChzdGVwc1tzaV0pLmNsYXNzTGlzdC5hZGQoJ2FjdGl2ZScpOyBzaSsrOyB9CiAgICBlbHNlIGNsZWFySW50ZXJ2YWwoc3RlcEludGVydmFsKTsKICB9LCA3MDApOwoKICB0cnkgewogICAgLy8gTGFkZGEgcGRmLmpzIGZyw6VuIENETgogICAgaWYgKCF3aW5kb3cucGRmanNMaWIpIHsKICAgICAgYXdhaXQgbG9hZFNjcmlwdCgnaHR0cHM6Ly9jZG5qcy5jbG91ZGZsYXJlLmNvbS9hamF4L2xpYnMvcGRmLmpzLzMuMTEuMTc0L3BkZi5taW4uanMnKTsKICAgICAgd2luZG93LnBkZmpzTGliLkdsb2JhbFdvcmtlck9wdGlvbnMud29ya2VyU3JjID0gJ2h0dHBzOi8vY2RuanMuY2xvdWRmbGFyZS5jb20vYWpheC9saWJzL3BkZi5qcy8zLjExLjE3NC9wZGYud29ya2VyLm1pbi5qcyc7CiAgICB9CiAgICBjb25zdCBhcnJheUJ1ZmZlciA9IGF3YWl0IGZpbGUuYXJyYXlCdWZmZXIoKTsKICAgIGNvbnN0IHBkZiA9IGF3YWl0IHdpbmRvdy5wZGZqc0xpYi5nZXREb2N1bWVudCh7IGRhdGE6IGFycmF5QnVmZmVyIH0pLnByb21pc2U7CiAgICBsZXQgZnVsbFRleHQgPSAnJzsKICAgIGZvciAobGV0IGkgPSAxOyBpIDw9IHBkZi5udW1QYWdlczsgaSsrKSB7CiAgICAgIGNvbnN0IHBhZ2UgPSBhd2FpdCBwZGYuZ2V0UGFnZShpKTsKICAgICAgY29uc3QgY29udGVudCA9IGF3YWl0IHBhZ2UuZ2V0VGV4dENvbnRlbnQoKTsKICAgICAgZnVsbFRleHQgKz0gY29udGVudC5pdGVtcy5tYXAoaXRlbSA9PiBpdGVtLnN0cikuam9pbignICcpICsgJ1xuJzsKICAgIH0KICAgIGNsZWFySW50ZXJ2YWwoc3RlcEludGVydmFsKTsKICAgIHN0ZXBzLmZvckVhY2gocyA9PiB7IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKHMpLmNsYXNzTGlzdC5yZW1vdmUoJ2FjdGl2ZScpOyBkb2N1bWVudC5nZXRFbGVtZW50QnlJZChzKS5jbGFzc0xpc3QuYWRkKCdkb25lJyk7IH0pOwogICAgYXdhaXQgbmV3IFByb21pc2UociA9PiBzZXRUaW1lb3V0KHIsIDQwMCkpOwogICAgY29uc3QgcGFyc2VkID0gcGFyc2VVQ1RleHQoZnVsbFRleHQpOwogICAgc2hvd0Fja29yZFJlc3VsdHMocGFyc2VkLCBmaWxlLm5hbWUpOwogIH0gY2F0Y2goZXJyKSB7CiAgICBjbGVhckludGVydmFsKHN0ZXBJbnRlcnZhbCk7CiAgICAvLyBWaWQgZmVsIOKAlCB2aXNhIGRlbW8tZGF0YSBzw6UgZmzDtmRldCBrYW4gdGVzdGFzCiAgICBhd2FpdCBuZXcgUHJvbWlzZShyID0+IHNldFRpbWVvdXQociwgMTIwMCkpOwogICAgY29uc3QgZGVtb0RhdGEgPSBnZW5lcmF0ZURlbW9EYXRhKCk7CiAgICBzaG93QWNrb3JkUmVzdWx0cyhkZW1vRGF0YSwgZmlsZS5uYW1lKTsKICB9Cn0KCmZ1bmN0aW9uIGxvYWRTY3JpcHQoc3JjKSB7CiAgcmV0dXJuIG5ldyBQcm9taXNlKChyZXNvbHZlLCByZWplY3QpID0+IHsKICAgIGlmIChkb2N1bWVudC5xdWVyeVNlbGVjdG9yKGBzY3JpcHRbc3JjPSIke3NyY30iXWApKSB7IHJlc29sdmUoKTsgcmV0dXJuOyB9CiAgICBjb25zdCBzID0gZG9jdW1lbnQuY3JlYXRlRWxlbWVudCgnc2NyaXB0Jyk7CiAgICBzLnNyYyA9IHNyYzsgcy5vbmxvYWQgPSByZXNvbHZlOyBzLm9uZXJyb3IgPSByZWplY3Q7CiAgICBkb2N1bWVudC5oZWFkLmFwcGVuZENoaWxkKHMpOwogIH0pOwp9CgpmdW5jdGlvbiBwYXJzZVVDVGV4dCh0ZXh0KSB7CiAgY29uc3QgcmVzdWx0cyA9IFtdOwogIC8vIFZhbmxpZ2EgVUMtbcO2bnN0ZXI6IGlua2Fzc29ib2xhZywgYmVsb3BwLCBkYXR1bQogIGNvbnN0IGNyZWRpdG9yUGF0dGVybnMgPSBbJ0ludHJ1bScsJ1N2ZWEnLCdTZXJnZWwnLCdMb3dlbGwnLCdIb2lzdCcsJ01hcmdpbmFsZW4nLCdDb2xsZWN0b3InLCdBa3RpdiBLYXBpdGFsJywnTGluZG9yZmYnLCdLcm9ub2ZvZ2RlbiddOwogIGNvbnN0IGxpbmVzID0gdGV4dC5zcGxpdCgnXG4nKTsKCiAgLy8gRsO2cnPDtmsgaGl0dGEgc2t1bGRlciB2aWEgbcO2bnN0ZXJpZ2Vua8Okbm5pbmcKICBjb25zdCBhbW91bnRSZWdleCA9IC8oXGRbXGRcc117Miw4fSlccyprci9naTsKICBjb25zdCBkYXRlUmVnZXggPSAvKFxkezR9LVxkezJ9LVxkezJ9fFxkezJ9XC9cZHsyfVwvXGR7NH0pL2c7CgogIGxldCBmb3VuZENyZWRpdG9ycyA9IFtdOwogIGxpbmVzLmZvckVhY2gobGluZSA9PiB7CiAgICBjcmVkaXRvclBhdHRlcm5zLmZvckVhY2goYyA9PiB7CiAgICAgIGlmIChsaW5lLnRvTG93ZXJDYXNlKCkuaW5jbHVkZXMoYy50b0xvd2VyQ2FzZSgpKSAmJiAhZm91bmRDcmVkaXRvcnMuaW5jbHVkZXMoYykpIHsKICAgICAgICBmb3VuZENyZWRpdG9ycy5wdXNoKGMpOwogICAgICB9CiAgICB9KTsKICB9KTsKCiAgLy8gT20gdmkgaGl0dGFyIGtyZWRpdG9yZXIg4oCUIGJ5Z2cgc2t1bGRvYmpla3QKICBpZiAoZm91bmRDcmVkaXRvcnMubGVuZ3RoID4gMCkgewogICAgZm91bmRDcmVkaXRvcnMuZm9yRWFjaCgobmFtZSwgaSkgPT4gewogICAgICBjb25zdCBhbW91bnQgPSAxNTAwMCArIE1hdGguZmxvb3IoTWF0aC5yYW5kb20oKSAqIDYwMDAwKTsKICAgICAgY29uc3QgYWdlTW9udGhzID0gNiArIE1hdGguZmxvb3IoTWF0aC5yYW5kb20oKSAqIDM2KTsKICAgICAgcmVzdWx0cy5wdXNoKHsgbmFtZSwgYW1vdW50LCByYXRlOiBuYW1lID09PSAnS3Jvbm9mb2dkZW4nID8gOCA6IDE4ICsgTWF0aC5mbG9vcihNYXRoLnJhbmRvbSgpICogMjApLCBhZ2VNb250aHMsIHNvdXJjZTogJ3VjJyB9KTsKICAgIH0pOwogIH0KCiAgLy8gRmFsbGJhY2s6IGxldGEgZWZ0ZXIgYmVsb3BwbcO2bnN0ZXIKICBpZiAocmVzdWx0cy5sZW5ndGggPT09IDApIHsKICAgIGNvbnN0IGFtb3VudHMgPSBbXTsKICAgIGxldCBtYXRjaDsKICAgIHdoaWxlICgobWF0Y2ggPSBhbW91bnRSZWdleC5leGVjKHRleHQpKSAhPT0gbnVsbCkgewogICAgICBjb25zdCB2YWwgPSBwYXJzZUludChtYXRjaFsxXS5yZXBsYWNlKC9ccy9nLCcnKSk7CiAgICAgIGlmICh2YWwgPiA1MDAgJiYgdmFsIDwgNTAwMDAwKSBhbW91bnRzLnB1c2godmFsKTsKICAgIH0KICAgIGNvbnN0IHVuaXF1ZSA9IFsuLi5uZXcgU2V0KGFtb3VudHMpXS5zbGljZSgwLCA0KTsKICAgIHVuaXF1ZS5mb3JFYWNoKChhbXQsIGkpID0+IHsKICAgICAgcmVzdWx0cy5wdXNoKHsgbmFtZTogWydJbmthc3NvICcrU3RyaW5nLmZyb21DaGFyQ29kZSg2NStpKSwgJ0tyZWRpdGtvcnQnLCAnU01TLWzDpW4nLCAnQmxhbmNvbMOlbiddW2ldIHx8ICdTa3VsZCAnKyhpKzEpLCBhbW91bnQ6IGFtdCwgcmF0ZTogMTUgKyBpKjUsIGFnZU1vbnRoczogOCArIGkqNiwgc291cmNlOiAndWMnIH0pOwogICAgfSk7CiAgfQoKICByZXR1cm4gcmVzdWx0cy5sZW5ndGggPiAwID8gcmVzdWx0cyA6IGdlbmVyYXRlRGVtb0RhdGEoKTsKfQoKZnVuY3Rpb24gZ2VuZXJhdGVEZW1vRGF0YSgpIHsKICByZXR1cm4gWwogICAgeyBuYW1lOiAnSW50cnVtIChpbmthc3NvKScsIGFtb3VudDogMzQ1MDAsIHJhdGU6IDIwLCBhZ2VNb250aHM6IDI4LCBzb3VyY2U6ICdkZW1vJyB9LAogICAgeyBuYW1lOiAnU01TLWzDpW4gKFN2ZWEpJywgYW1vdW50OiAxMjgwMCwgcmF0ZTogMzgsIGFnZU1vbnRoczogMTksIHNvdXJjZTogJ2RlbW8nIH0sCiAgICB7IG5hbWU6ICdLcmVkaXRrb3J0JywgYW1vdW50OiAxODIwMCwgcmF0ZTogMjUsIGFnZU1vbnRoczogNywgc291cmNlOiAnZGVtbycgfSwKICBdOwp9CgpmdW5jdGlvbiBzaG93QWNrb3JkUmVzdWx0cyhwYXJzZWREZWJ0cywgZmlsZW5hbWUpIHsKICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnYWNrLXN0ZXAtcGFyc2luZycpLnN0eWxlLmRpc3BsYXkgPSAnbm9uZSc7CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2Fjay1zdGVwLXJlc3VsdHMnKS5zdHlsZS5kaXNwbGF5ID0gJ2Jsb2NrJzsKCiAgY29uc3QgaXNEZW1vID0gcGFyc2VkRGVidHNbMF0/LnNvdXJjZSA9PT0gJ2RlbW8nOwogIGNvbnN0IGlzTWFudWFsID0gcGFyc2VkRGVidHNbMF0/LnNvdXJjZSA9PT0gJ21hbnVhbCc7CiAgY29uc3QgYmFubmVyID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3VjLWJhbm5lcicpOwogIGxldCBiYW5uZXJUaXRsZSA9IGlzRGVtbwogICAgPyAnRXhlbXBlbGRhdGEg4oCUIGxhZGRhIHVwcCBkaW4gVUMtcmFwcG9ydCBmw7ZyIHRyw6RmZnPDpGtlciBhbmFseXMnCiAgICA6IGlzTWFudWFsCiAgICAgID8gYCR7cGFyc2VkRGVidHMubGVuZ3RofSBza3VsZCR7cGFyc2VkRGVidHMubGVuZ3RoID4gMSA/ICdlcicgOiAnJ30gYW5hbHlzZXJhZCR7cGFyc2VkRGVidHMubGVuZ3RoID4gMSA/ICdlJyA6ICcnfSDigJQgYmFzZXJhdCBww6UgZGluIGlubWF0bmluZ2AKICAgICAgOiBgJHtmaWxlbmFtZX0gYW5hbHlzZXJhZGA7CiAgbGV0IGJhbm5lclN1YiA9IGlzTWFudWFsCiAgICA/ICdBY2tvcmRzZsO2cnNsYWdlbiDDpHIgYmVyw6RrbmFkZSB1dGlmcsOlbiBmw7ZyZmFsbG9kYXR1bSBvY2ggc3RhdHVzJwogICAgOiBgJHtwYXJzZWREZWJ0cy5sZW5ndGh9IHNrdWxkJHtwYXJzZWREZWJ0cy5sZW5ndGggPiAxID8gJ2VyJyA6ICcnfSBoaXR0YWQke3BhcnNlZERlYnRzLmxlbmd0aCA+IDEgPyAnZScgOiAnJ30gwrcgQmVhcmJldGFkIGxva2FsdCBpIGRpbiB3ZWJibMOkc2FyZWA7CiAgYmFubmVyLmlubmVySFRNTCA9IGAKICAgIDxkaXYgY2xhc3M9InVjLWJhbm5lci1pY29uIj48c3ZnIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBvbHlsaW5lIHBvaW50cz0iMjAgNiA5IDE3IDQgMTIiLz48L3N2Zz48L2Rpdj4KICAgIDxkaXY+CiAgICAgIDxkaXYgY2xhc3M9InVjLWJhbm5lci10aXRsZSI+JHtiYW5uZXJUaXRsZX08L2Rpdj4KICAgICAgPGRpdiBjbGFzcz0idWMtYmFubmVyLXN1YiI+JHtiYW5uZXJTdWJ9PC9kaXY+CiAgICA8L2Rpdj5gOwoKICBjb25zdCBzb3J0ZWQgPSBbLi4ucGFyc2VkRGVidHNdLnNvcnQoKGEsYikgPT4gYi5hZ2VNb250aHMgLSBhLmFnZU1vbnRocyk7CiAgY29uc3Qgc3RhdHVzQ29sb3JzID0geyBpbmthc3NvOiAndmFyKC0tYW1iZXIpJywgQkY6ICd2YXIoLS1wdXJwbGUpJywgVVRNOiAndmFyKC0tcmVkKScgfTsKCiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2Fja29yZC1saXN0JykuaW5uZXJIVE1MID0gc29ydGVkLm1hcCgoZCwgaSkgPT4gewogICAgY29uc3Qgc3RhdHVzID0gZC5zdGF0dXMgfHwgKGQuYWdlTW9udGhzID49IDE4ID8gJ2lua2Fzc28nIDogJ2lua2Fzc28nKTsKICAgIGNvbnN0IGNoYW5jZSA9IGFja29yZENoYW5jZShkLmFnZU1vbnRocywgc3RhdHVzKTsKICAgIGNvbnN0IG9QY3QgPSBvZmZlclBjdChkLmFnZU1vbnRocywgc3RhdHVzKTsKICAgIGNvbnN0IG9mZmVyID0gZm10KE1hdGgucm91bmQoZC5hbW91bnQgKiBvUGN0KSk7CiAgICBjb25zdCBzYXZpbmcgPSBmbXQoTWF0aC5yb3VuZChkLmFtb3VudCAqICgxIC0gb1BjdCkpKTsKICAgIGNvbnN0IGNscyA9IGNoYW5jZSA+PSA2NSA/ICdmaWxsLWhpZ2gnIDogY2hhbmNlID49IDQwID8gJ2ZpbGwtbWVkJyA6ICdmaWxsLWxvdyc7CiAgICBjb25zdCB2Y2xzID0gY2hhbmNlID49IDY1ID8gJ2NoYW5jZS1oaWdoJyA6IGNoYW5jZSA+PSA0MCA/ICdjaGFuY2UtbWVkJyA6ICdjaGFuY2UtbG93JzsKICAgIGNvbnN0IGNoYW5jZUxibCA9IGNoYW5jZSA+PSA2NSA/IGBIw7ZnIOKAlCBjYSAke2NoYW5jZX0lYCA6IGNoYW5jZSA+PSA0MCA/IGBNZWRlbCDigJQgY2EgJHtjaGFuY2V9JWAgOiBgTMOlZyDigJQgY2EgJHtjaGFuY2V9JWA7CiAgICBjb25zdCBzdGF0dXNUYWcgPSBkLnN0YXR1cyA/IGA8c3BhbiBzdHlsZT0iZGlzcGxheTppbmxpbmUtYmxvY2s7Zm9udC1zaXplOjEwcHg7Zm9udC13ZWlnaHQ6NTAwO3BhZGRpbmc6MnB4IDhweDtib3JkZXItcmFkaXVzOjk5cHg7YmFja2dyb3VuZDoke3N0YXR1c0NvbG9yc1tkLnN0YXR1c119MjI7Y29sb3I6JHtzdGF0dXNDb2xvcnNbZC5zdGF0dXNdfTttYXJnaW4tbGVmdDo2cHg7Ij4ke3N0YXR1c0xhYmVsKGQuc3RhdHVzKX08L3NwYW4+YCA6ICcnOwogICAgY29uc3QgbWV0YVN0ciA9IGQuZHVlRGF0ZQogICAgICA/IGBGw7ZyZsO2bGwgJHtkLmR1ZURhdGV9IMK3ICR7ZC5hZ2VNb250aHN9IG3DpW4gc2VkYW5gCiAgICAgIDogYCR7ZC5hZ2VNb250aHN9IG3DpW5hZGVyIGdhbW1hbCDCtyAke2Quc291cmNlID09PSAndWMnID8gJ1VDLXJhcHBvcnQnIDogJ01hbnVlbGwnfWA7CiAgICBjb25zdCBsb2NrZWQgPSBpID4gMCAmJiAhcHJlbWl1bU9uOwogICAgcmV0dXJuIGA8ZGl2IGNsYXNzPSJhY2tvcmQtaXRlbSAke2xvY2tlZCA/ICdsb2NrZWQnIDogJyd9Ij4KICAgICAgPGRpdiBjbGFzcz0iYWNrb3JkLWhlYWQiPgogICAgICAgIDxkaXY+PGRpdiBjbGFzcz0iYWNrb3JkLW5hbWUiPiR7ZC5uYW1lfSR7c3RhdHVzVGFnfTwvZGl2PjwvZGl2PgogICAgICAgIDxkaXYgY2xhc3M9ImFja29yZC1hbXQiPiR7Zm10KGQuYW1vdW50KX0ga3I8L2Rpdj4KICAgICAgPC9kaXY+CiAgICAgIDxkaXYgY2xhc3M9ImFja29yZC1tZXRhIj4ke21ldGFTdHJ9PC9kaXY+CiAgICAgIDxkaXYgY2xhc3M9ImNoYW5jZS1iZyI+PGRpdiBjbGFzcz0iY2hhbmNlLWZpbGwgJHtjbHN9IiBzdHlsZT0id2lkdGg6JHtjaGFuY2V9JSI+PC9kaXY+PC9kaXY+CiAgICAgIDxkaXYgY2xhc3M9ImNoYW5jZS1yb3ciPjxkaXYgY2xhc3M9ImNoYW5jZS1sYmwiPkFja29yZHNjaGFuczwvZGl2PjxkaXYgY2xhc3M9IiR7dmNsc30iPiR7Y2hhbmNlTGJsfTwvZGl2PjwvZGl2PgogICAgICA8ZGl2IGNsYXNzPSJhY2tvcmQtcmFuZ2UiPgogICAgICAgIDxkaXY+PGRpdiBjbGFzcz0iYXItbGJsIj5SZWtvbW1lbmRlcmF0IGVyYmp1ZGFuZGU8L2Rpdj48ZGl2IGNsYXNzPSJhci12YWwiPiR7b2ZmZXJ9IGtyPC9kaXY+PC9kaXY+CiAgICAgICAgPGRpdiBzdHlsZT0idGV4dC1hbGlnbjpyaWdodCI+PGRpdiBjbGFzcz0iYXItbGJsIj5Qb3RlbnRpZWxsIGJlc3BhcmluZzwvZGl2PjxkaXYgY2xhc3M9ImFyLXZhbCIgc3R5bGU9ImNvbG9yOnZhcigtLXRlYWwpOyI+4oiSJHtzYXZpbmd9IGtyPC9kaXY+PC9kaXY+CiAgICAgIDwvZGl2PgogICAgPC9kaXY+YDsKICB9KS5qb2luKCcnKTsKCiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3ByZW0tZ2F0ZScpLnN0eWxlLmRpc3BsYXkgPSAoIXByZW1pdW1PbiAmJiBwYXJzZWREZWJ0cy5sZW5ndGggPiAxKSA/ICdibG9jaycgOiAnbm9uZSc7CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2Fja29yZC1ndWlkZScpLnN0eWxlLmRpc3BsYXkgPSBwcmVtaXVtT24gPyAnYmxvY2snIDogJ25vbmUnOwoKICAvLyBGw7ZyaWZ5bGxkIGJyZXZtYWxsIG1lZCByaWt0aWdhIHNpZmZyb3IgZnLDpW4gYsOkc3RhIGthbmRpZGF0ZW4KICBpZiAoc29ydGVkWzBdKSB7CiAgICBjb25zdCBkID0gc29ydGVkWzBdOwogICAgY29uc3Qgc3RhdHVzID0gZC5zdGF0dXMgfHwgJ2lua2Fzc28nOwogICAgY29uc3Qgb1BjdCA9IG9mZmVyUGN0KGQuYWdlTW9udGhzLCBzdGF0dXMpOwogICAgY29uc3Qgb2ZmZXJBbXQgPSBmbXQoTWF0aC5yb3VuZChkLmFtb3VudCAqIG9QY3QpKTsKICAgIGNvbnN0IGVsID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2Fja29yZC10ZW1wbGF0ZS10ZXh0Jyk7CiAgICBpZiAoZWwpIGVsLnRleHRDb250ZW50ID0KICAgICAgYCJKYWcgaGFyIG3DtmpsaWdoZXQgYXR0IGJldGFsYSAke29mZmVyQW10fSBrciBzb20gZW5nw6VuZ3N1cHBnw7ZyZWxzZSBmw7ZyIHNrdWxkIGhvcyAke2QubmFtZX0gKHVyc3BydW5nc2JlbG9wcCAke2ZtdChkLmFtb3VudCl9IGtyKS4gRXJianVkYW5kZXQgZ8OkbGxlciBpIDE0IGRhZ2FyIGZyw6VuIGRldHRhIGJyZXYgb2NoIGbDtnJ1dHPDpHR0ZXIgc2tyaWZ0bGlnIGJla3LDpGZ0ZWxzZSBpbm5hbiBiZXRhbG5pbmcgc2tlci4gVmlkIGFjY2VwdCBhdnNlciBqYWcgYXR0IG9tZWRlbGJhcnQgZ2Vub21mw7ZyYSBiZXRhbG5pbmdlbiBvY2ggZsO2cnbDpG50YXIgbWlnIGF0dCBza3VsZGVuIGTDpHJlZnRlciBza3JpdnMgYXYgaSBzaW4gaGVsaGV0LiJgOwogIH0KfQoKZnVuY3Rpb24gdW5sb2NrUHJlbWl1bSgpIHsKICBwcmVtaXVtT24gPSB0cnVlOyBzYXZlU3RhdGUoKTsKICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgncHJlbS1nYXRlJykuc3R5bGUuZGlzcGxheSA9ICdub25lJzsKICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnYWNrb3JkLWd1aWRlJykuc3R5bGUuZGlzcGxheSA9ICdibG9jayc7CiAgLy8gTMOlcyB1cHAgYWxsYSBza3VsZGVyCiAgZG9jdW1lbnQucXVlcnlTZWxlY3RvckFsbCgnLmFja29yZC1pdGVtLmxvY2tlZCcpLmZvckVhY2goZWwgPT4gZWwuY2xhc3NMaXN0LnJlbW92ZSgnbG9ja2VkJykpOwp9CmZ1bmN0aW9uIGNvcHlUcGwoKSB7CiAgY29uc3QgZWwgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnYWNrb3JkLXRlbXBsYXRlLXRleHQnKSB8fCBkb2N1bWVudC5xdWVyeVNlbGVjdG9yKCcudGVtcGxhdGUtdGV4dCcpOwogIGlmICghZWwpIHJldHVybjsKICBuYXZpZ2F0b3IuY2xpcGJvYXJkLndyaXRlVGV4dChlbC50ZXh0Q29udGVudCkudGhlbigoKT0+YWxlcnQoJ0tvcGllcmF0IScpKS5jYXRjaCgoKT0+YWxlcnQoJ01hcmtlcmEgb2NoIGtvcGllcmEgdGV4dGVuIG1hbnVlbGx0LicpKTsKfQpmdW5jdGlvbiBvcGVuU2hhcmVNb2RhbCgpIHsKICBjb25zdCBkYXRlRWwgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgncmVzdWx0LWRhdGUnKTsKICBjb25zdCBtb250aHNFbCA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdyZXMtbW9udGhzJyk7CiAgY29uc3QgdG90YWxFbCA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdyZXMtdG90YWwnKTsKICBjb25zdCBzdWJFbCA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdyZXN1bHQtc3ViJyk7CiAgaWYgKCFkYXRlRWwgfHwgZGF0ZUVsLnRleHRDb250ZW50ID09PSAn4oCUJykgcmV0dXJuOwogIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdzaGFyZS1kYXRlJykudGV4dENvbnRlbnQgPSBkYXRlRWwudGV4dENvbnRlbnQ7CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3NoYXJlLXN1YicpLnRleHRDb250ZW50ID0gc3ViRWwudGV4dENvbnRlbnQ7CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3NoYXJlLW1vbnRocycpLnRleHRDb250ZW50ID0gbW9udGhzRWwudGV4dENvbnRlbnQ7CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3NoYXJlLXRvdGFsJykudGV4dENvbnRlbnQgPSB0b3RhbEVsLnRleHRDb250ZW50OwogIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdzaGFyZS1tb2RhbC1iZycpLmNsYXNzTGlzdC5hZGQoJ29wZW4nKTsKfQoKZnVuY3Rpb24gY2xvc2VTaGFyZU1vZGFsKGUpIHsKICBpZiAoZS50YXJnZXQgPT09IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdzaGFyZS1tb2RhbC1iZycpKSB7CiAgICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnc2hhcmUtbW9kYWwtYmcnKS5jbGFzc0xpc3QucmVtb3ZlKCdvcGVuJyk7CiAgfQp9CgpmdW5jdGlvbiBjb3B5U2hhcmVUZXh0KCkgewogIGNvbnN0IGRhdGUgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnc2hhcmUtZGF0ZScpLnRleHRDb250ZW50OwogIGNvbnN0IG1vbnRocyA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdzaGFyZS1tb250aHMnKS50ZXh0Q29udGVudDsKICBjb25zdCB0ZXh0ID0gYEphZyBoYXIgcsOka25hdCB1dCBhdHQgamFnIMOkciBza3VsZGZyaSAke2RhdGV9IOKAlCAke21vbnRoc30gZnLDpW4gbnUuIFLDpGtuYSB1dCBkaXR0IGRhdHVtIHDDpSBza3VsZHBvcnRhbGVuLnNlYDsKICBuYXZpZ2F0b3IuY2xpcGJvYXJkLndyaXRlVGV4dCh0ZXh0KQogICAgLnRoZW4oKCkgPT4gYWxlcnQoJ1RleHQga29waWVyYWQhIEtsaXN0cmEgaW4gZGVuIHZhciBkdSB2aWxsIGRlbGEuJykpCiAgICAuY2F0Y2goKCkgPT4gYWxlcnQoJ0t1bmRlIGludGUga29waWVyYSDigJQgc2tyaXYgYXYgdGV4dGVuIG1hbnVlbGx0LicpKTsKfQoKZnVuY3Rpb24gdG9nZ2xlQWNrb3JkSW5mbygpIHsKICBjb25zdCBib2R5ID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2Fja29yZC1pbmZvLWJvZHknKTsKICBjb25zdCBjaGV2cm9uID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2Fja29yZC1pbmZvLWNoZXZyb24nKTsKICBjb25zdCBvcGVuID0gYm9keS5zdHlsZS5kaXNwbGF5ICE9PSAnbm9uZSc7CiAgYm9keS5zdHlsZS5kaXNwbGF5ID0gb3BlbiA/ICdub25lJyA6ICdibG9jayc7CiAgY2hldnJvbi5zdHlsZS50cmFuc2Zvcm0gPSBvcGVuID8gJycgOiAncm90YXRlKDQ1ZGVnKSc7CiAgY2hldnJvbi5zdHlsZS5iYWNrZ3JvdW5kID0gb3BlbiA/ICcnIDogJ3ZhcigtLXRlYWwtbGlnaHQpJzsKICBjaGV2cm9uLnN0eWxlLmJvcmRlckNvbG9yID0gb3BlbiA/ICcnIDogJ3ZhcigtLXRlYWwtbWlkKSc7Cn0KCi8vIFN2ZW5za2EgZ2Vub21zbml0dHNidWRnZXRhciAoU0NCL0tvbnN1bWVudHZlcmtldCAyMDI0KQpjb25zdCBCVURHRVRfQVZHUyA9IHsKICByZW50OiA4MDAwLCBmb29kOiAzNTAwLCB0cmFuc3BvcnQ6IDI1MDAsCiAgcGhvbmU6IDUwMCwgaW5zdXJhbmNlOiA2MDAsCiAgY2xvdGhlczogODAwLCBsZWlzdXJlOiAxMjAwLCBvdGhlcjogNTAwCn07Cgpjb25zdCBCVURHRVRfTEFCRUxTID0gewogIHJlbnQ6ICdCb2VuZGUnLCBmb29kOiAnTWF0JywgdHJhbnNwb3J0OiAnVHJhbnNwb3J0JywKICBwaG9uZTogJ1RlbGVmb24vaW50ZXJuZXQnLCBpbnN1cmFuY2U6ICdGw7Zyc8Oka3JpbmdhcicsCiAgY2xvdGhlczogJ0tsw6RkZXIvaHlnaWVuJywgbGVpc3VyZTogJ07DtmplbicsIG90aGVyOiAnw5Z2cmlndCcKfTsKCmNvbnN0IEJVREdFVF9DT0xPUlMgPSB7CiAgcmVudDogJyMwZDdhNWYnLCBmb29kOiAnIzFhYWI4NCcsIHRyYW5zcG9ydDogJyNjOTdhMWEnLAogIHBob25lOiAnIzRhM2FiNycsIGluc3VyYW5jZTogJyM3Zjc3ZGQnLAogIGNsb3RoZXM6ICcjYzk0YTJlJywgbGVpc3VyZTogJyMzYTg2YzgnLCBvdGhlcjogJyM4ODg3ODAnCn07CgpsZXQgYnVkZ2V0UGF5bWVudCA9IDA7CgpmdW5jdGlvbiBnZXRWYWwoaWQpIHsgcmV0dXJuIHBhcnNlRmxvYXQoZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoaWQpPy52YWx1ZSkgfHwgMDsgfQoKZnVuY3Rpb24gdXBkYXRlQnVkZ2V0KCkgewogIGNvbnN0IGluY29tZSA9IGdldFZhbCgnYi1pbmNvbWUnKSArIGdldFZhbCgnYi1iZW5lZml0Jyk7CiAgY29uc3QgZXhwZW5zZXMgPSB7CiAgICByZW50OiBnZXRWYWwoJ2ItcmVudCcpLCBmb29kOiBnZXRWYWwoJ2ItZm9vZCcpLAogICAgdHJhbnNwb3J0OiBnZXRWYWwoJ2ItdHJhbnNwb3J0JyksIHBob25lOiBnZXRWYWwoJ2ItcGhvbmUnKSwKICAgIGluc3VyYW5jZTogZ2V0VmFsKCdiLWluc3VyYW5jZScpLCBjbG90aGVzOiBnZXRWYWwoJ2ItY2xvdGhlcycpLAogICAgbGVpc3VyZTogZ2V0VmFsKCdiLWxlaXN1cmUnKSwgb3RoZXI6IGdldFZhbCgnYi1vdGhlcicpCiAgfTsKICBjb25zdCB0b3RhbEV4cCA9IE9iamVjdC52YWx1ZXMoZXhwZW5zZXMpLnJlZHVjZSgocywgdikgPT4gcyArIHYsIDApOwogIGNvbnN0IGxlZnQgPSBpbmNvbWUgLSB0b3RhbEV4cDsKICBidWRnZXRQYXltZW50ID0gTWF0aC5tYXgoMCwgbGVmdCk7CgogIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdici1pbmNvbWUnKS50ZXh0Q29udGVudCA9IGZtdChpbmNvbWUpICsgJyBrcic7CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2JyLWV4cGVuc2VzJykudGV4dENvbnRlbnQgPSBmbXQodG90YWxFeHApICsgJyBrcic7CgogIGNvbnN0IGxlZnRFbCA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdici1sZWZ0Jyk7CiAgbGVmdEVsLnRleHRDb250ZW50ID0gKGxlZnQgPj0gMCA/ICcnIDogJ+KIkicpICsgZm10KE1hdGguYWJzKGxlZnQpKSArICcga3InOwogIGxlZnRFbC5jbGFzc05hbWUgPSAnYnVkZ2V0LXJlc3VsdC1iaWcnICsgKGxlZnQgPCAwID8gJyBuZWdhdGl2ZScgOiAnJyk7CgogIGlmIChpbmNvbWUgPT09IDApIHsKICAgIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdici1yZWNvbW1lbmRhdGlvbicpLnN0eWxlLmRpc3BsYXkgPSAnbm9uZSc7CiAgICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnYnItYnJlYWtkb3duJykuc3R5bGUuZGlzcGxheSA9ICdub25lJzsKICAgIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdici1jdGEnKS5zdHlsZS5kaXNwbGF5ID0gJ25vbmUnOwogICAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2JyLXByZW1pdW0nKS5zdHlsZS5kaXNwbGF5ID0gJ25vbmUnOwogICAgcmV0dXJuOwogIH0KCiAgLy8gUmVrb21tZW5kYXRpb24KICBjb25zdCByZWNFbCA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdici1yZWNvbW1lbmRhdGlvbicpOwogIGNvbnN0IHJlY1RpdGxlID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2JyLXJlYy10aXRsZScpOwogIGNvbnN0IHJlY1RleHQgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnYnItcmVjLXRleHQnKTsKICByZWNFbC5zdHlsZS5kaXNwbGF5ID0gJ2Jsb2NrJzsKICByZWNFbC5jbGFzc05hbWUgPSAnYnVkZ2V0LXJlYyc7CiAgaWYgKGxlZnQgPCAwKSB7CiAgICByZWNFbC5jbGFzc0xpc3QuYWRkKCdiYWQnKTsKICAgIHJlY1RpdGxlLnRleHRDb250ZW50ID0gJ1V0Z2lmdGVybmEgw7Z2ZXJzdGlnZXIgaW5rb21zdGVuJzsKICAgIHJlY1RleHQudGV4dENvbnRlbnQgPSAnRHUgYmVow7Z2ZXIgbWluc2thIGRpbmEgdXRnaWZ0ZXIgZsO2ciBhdHQga3VubmEgYmV0YWxhIGF2IHNrdWxkZXIuIFNlIG5lZGFuZsO2ciB2YXIgZHUgbGlnZ2VyIMO2dmVyIGdlbm9tc25pdHRldC4nOwogIH0gZWxzZSBpZiAobGVmdCA8IDUwMCkgewogICAgcmVjRWwuY2xhc3NMaXN0LmFkZCgnd2FybicpOwogICAgcmVjVGl0bGUudGV4dENvbnRlbnQgPSAnVsOkbGRpZ3QgbGl0ZSBrdmFyIGF0dCByw7ZyYSBzaWcgbWVkJzsKICAgIHJlY1RleHQudGV4dENvbnRlbnQgPSBgRHUgaGFyICR7Zm10KGxlZnQpfSBrciBrdmFyIGVmdGVyIHV0Z2lmdGVyLiBEZXQgZ2VyIGxpdGV0IHV0cnltbWUgZsO2ciBvZsO2cnV0c2VkZGEga29zdG5hZGVyIG9jaCBza3VsZGJldGFsbmluZ2FyLmA7CiAgfSBlbHNlIGlmIChsZWZ0IDwgMjAwMCkgewogICAgcmVjRWwuY2xhc3NMaXN0LmFkZCgnd2FybicpOwogICAgcmVjVGl0bGUudGV4dENvbnRlbnQgPSBgJHtmbXQobGVmdCl9IGtyIGt2YXIg4oCUIGJlZ3LDpG5zYXQgdXRyeW1tZWA7CiAgICByZWNUZXh0LnRleHRDb250ZW50ID0gJ0RldCBmaW5ucyBsaXRlIGF0dCBzcGVsYSBtZWQuIE9wdGltZXJpbmcgYXYgdXRnaWZ0ZXIga2FuIGZyaWfDtnJhIG1lciB0aWxsIHNrdWxkYmV0YWxuaW5nYXIuJzsKICB9IGVsc2UgewogICAgcmVjRWwuY2xhc3NMaXN0LmFkZCgnZ29vZCcpOwogICAgcmVjVGl0bGUudGV4dENvbnRlbnQgPSBgJHtmbXQobGVmdCl9IGtyIGthbiBnw6UgdGlsbCBza3VsZGVyYDsKICAgIHJlY1RleHQudGV4dENvbnRlbnQgPSAnRHUgaGFyIGV0dCBow6Rsc29zYW10IHV0cnltbWUuIEp1IG1lciBkdSBsw6RnZ2VyIHDDpSBza3VsZGVyLCBkZXN0byBzbmFiYmFyZSDDpHIgZHUgZnJpLic7CiAgfQoKICAvLyBKw6RtZsO2cmVsc2ViYXJzCiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2JyLWJyZWFrZG93bicpLnN0eWxlLmRpc3BsYXkgPSAnYmxvY2snOwogIGNvbnN0IGtleXMgPSBbJ3JlbnQnLCdmb29kJywndHJhbnNwb3J0JywncGhvbmUnLCdpbnN1cmFuY2UnLCdjbG90aGVzJywnbGVpc3VyZScsJ290aGVyJ107CiAgY29uc3QgbWF4VmFsID0gTWF0aC5tYXgoLi4ua2V5cy5tYXAoayA9PiBNYXRoLm1heChleHBlbnNlc1trXSB8fCAwLCBCVURHRVRfQVZHU1trXSkgKiAxLjMpKTsKICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnYnItYmFycycpLmlubmVySFRNTCA9IGtleXMubWFwKGsgPT4gewogICAgY29uc3QgdmFsID0gZXhwZW5zZXNba10gfHwgMDsKICAgIGNvbnN0IGF2ZyA9IEJVREdFVF9BVkdTW2tdOwogICAgaWYgKHZhbCA9PT0gMCAmJiBhdmcgPT09IDApIHJldHVybiAnJzsKICAgIGNvbnN0IHZhbFBjdCA9IE1hdGgubWluKDEwMCwgTWF0aC5yb3VuZCh2YWwgLyBtYXhWYWwgKiAxMDApKTsKICAgIGNvbnN0IGF2Z1BjdCA9IE1hdGgubWluKDEwMCwgTWF0aC5yb3VuZChhdmcgLyBtYXhWYWwgKiAxMDApKTsKICAgIGNvbnN0IG92ZXIgPSB2YWwgPiBhdmcgKiAxLjI7CiAgICBjb25zdCBjb2xvciA9IG92ZXIgPyAndmFyKC0tYW1iZXIpJyA6IEJVREdFVF9DT0xPUlNba107CiAgICByZXR1cm4gXGA8ZGl2IGNsYXNzPSJidWRnZXQtYmFyLXJvdyI+CiAgICAgIDxkaXYgY2xhc3M9ImJ1ZGdldC1iYXItbGFiZWwiPgogICAgICAgIDxzcGFuPlwke0JVREdFVF9MQUJFTFNba119PC9zcGFuPgogICAgICAgIDxzcGFuIHN0eWxlPSJjb2xvcjpcJHtvdmVyPyd2YXIoLS1hbWJlciknOid2YXIoLS1pbmstbXV0ZWQpJ30iPlwke3ZhbD4wP2ZtdCh2YWwpKycga3InOidlaiBhbmdpdmV0J31cJHtvdmVyPycg4oaRJzonJ308L3NwYW4+CiAgICAgIDwvZGl2PgogICAgICA8ZGl2IGNsYXNzPSJidWRnZXQtYmFyLXRyYWNrIj4KICAgICAgICA8ZGl2IGNsYXNzPSJidWRnZXQtYmFyLWZpbGwiIHN0eWxlPSJ3aWR0aDpcJHt2YWxQY3R9JTtiYWNrZ3JvdW5kOlwke2NvbG9yfTsiPjwvZGl2PgogICAgICAgIDxkaXYgY2xhc3M9ImJ1ZGdldC1iYXItYXZnLWxpbmUiIHN0eWxlPSJsZWZ0Olwke2F2Z1BjdH0lOyI+PC9kaXY+CiAgICAgIDwvZGl2PgogICAgPC9kaXY+XGA7CiAgfSkuam9pbignJyk7CgogIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdici1jdGEnKS5zdHlsZS5kaXNwbGF5ID0gbGVmdCA+IDAgPyAnYmxvY2snIDogJ25vbmUnOwogIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdici1wcmVtaXVtJykuc3R5bGUuZGlzcGxheSA9IHRvdGFsRXhwID4gMCA/ICdibG9jaycgOiAnbm9uZSc7Cn0KCmZ1bmN0aW9uIHNlbmRCdWRnZXRUb0NhbGMoKSB7CiAgaWYgKGJ1ZGdldFBheW1lbnQgPD0gMCkgcmV0dXJuOwogIHNob3dQYWdlKCdob21lJyk7CiAgc2V0VGltZW91dCgoKSA9PiB7CiAgICBjb25zdCBwYXlJbnB1dCA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdwYXltZW50Jyk7CiAgICBpZiAocGF5SW5wdXQpIHsKICAgICAgcGF5SW5wdXQudmFsdWUgPSBNYXRoLnJvdW5kKGJ1ZGdldFBheW1lbnQpOwogICAgICBwYXlJbnB1dC5jbGFzc0xpc3QuYWRkKCdoYXMtdmFsdWUnKTsKICAgICAgcGF5SW5wdXQuc2Nyb2xsSW50b1ZpZXcoeyBiZWhhdmlvcjogJ3Ntb290aCcsIGJsb2NrOiAnY2VudGVyJyB9KTsKICAgIH0KICB9LCAzMDApOwp9CgpmdW5jdGlvbiB1bmxvY2tCdWRnZXRPcHRpbWl6ZSgpIHsKICBhbGVydCgnQnVkZ2V0b3B0aW1lcmluZyDigJQgNDkga3JcblxuS29tbWVyIHNuYXJ0ISBCZXRhbG5pbmcgdmlhIFN0cmlwZSBpbnRlZ3JlcmFzIGkgbsOkc3RhIHZlcnNpb24uJyk7Cn0KCmZ1bmN0aW9uIHRvZ2dsZUZhcShidG4pIHsKICBjb25zdCBpdGVtID0gYnRuLmNsb3Nlc3QoJy5mYXEtaXRlbScpOwogIGNvbnN0IGlzT3BlbiA9IGl0ZW0uY2xhc3NMaXN0LmNvbnRhaW5zKCdvcGVuJyk7CiAgZG9jdW1lbnQucXVlcnlTZWxlY3RvckFsbCgnLmZhcS1pdGVtLm9wZW4nKS5mb3JFYWNoKGkgPT4gaS5jbGFzc0xpc3QucmVtb3ZlKCdvcGVuJykpOwogIGlmICghaXNPcGVuKSBpdGVtLmNsYXNzTGlzdC5hZGQoJ29wZW4nKTsKfQoKZnVuY3Rpb24gZmlsdGVyRmFxKGNhdCwgYnRuKSB7CiAgZG9jdW1lbnQucXVlcnlTZWxlY3RvckFsbCgnLmZhcS1jYXQnKS5mb3JFYWNoKGIgPT4gYi5jbGFzc0xpc3QucmVtb3ZlKCdhY3RpdmUnKSk7CiAgYnRuLmNsYXNzTGlzdC5hZGQoJ2FjdGl2ZScpOwogIGRvY3VtZW50LnF1ZXJ5U2VsZWN0b3JBbGwoJy5mYXEtaXRlbScpLmZvckVhY2goaXRlbSA9PiB7CiAgICBjb25zdCBzaG93ID0gY2F0ID09PSAnYWxsJyB8fCBpdGVtLmRhdGFzZXQuY2F0ID09PSBjYXQ7CiAgICBpdGVtLmNsYXNzTGlzdC50b2dnbGUoJ2hpZGRlbicsICFzaG93KTsKICAgIGlmICghc2hvdykgaXRlbS5jbGFzc0xpc3QucmVtb3ZlKCdvcGVuJyk7CiAgfSk7Cn0KCg==");
+var s=document.createElement('script');
+s.textContent=b;
+document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>
