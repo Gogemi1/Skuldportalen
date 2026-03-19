@@ -1232,6 +1232,8 @@
 
 
 
+
+
 <script>
 
 
@@ -1877,16 +1879,16 @@ function updateBudget() {
     const avgPct = Math.min(100, Math.round(avg / maxVal * 100));
     const over = val > avg * 1.2;
     const color = over ? 'var(--amber)' : BUDGET_COLORS[k];
-    return \`<div class="budget-bar-row">
-      <div class="budget-bar-label">
-        <span>\${BUDGET_LABELS[k]}</span>
-        <span style="color:\${over?'var(--amber)':'var(--ink-muted)'}">\${val>0?fmt(val)+' kr':'ej angivet'}\${over?' ↑':''}</span>
-      </div>
-      <div class="budget-bar-track">
-        <div class="budget-bar-fill" style="width:\${valPct}%;background:\${color};"></div>
-        <div class="budget-bar-avg-line" style="left:\${avgPct}%;"></div>
-      </div>
-    </div>\`;
+    return '<div class="budget-bar-row">' +
+      '<div class="budget-bar-label">' +
+        '<span>' + BUDGET_LABELS[k] + '</span>' +
+        '<span style="color:' + (over?'var(--amber)':'var(--ink-muted)') + '">' + (val>0?fmt(val)+' kr':'ej angivet') + (over?' ↑':'') + '</span>' +
+      '</div>' +
+      '<div class="budget-bar-track">' +
+        '<div class="budget-bar-fill" style="width:' + valPct + '%;background:' + color + ';"></div>' +
+        '<div class="budget-bar-avg-line" style="left:' + avgPct + '%;"></div>' +
+      '</div>' +
+    '</div>';
   }).join('');
 
   document.getElementById('br-cta').style.display = left > 0 ? 'block' : 'none';
