@@ -134,6 +134,12 @@
   .debt-amount { font-size: 16px; font-weight: 500; flex-shrink: 0; }
   .debt-remove { background: none; border: none; cursor: pointer; color: var(--ink-muted); font-size: 20px; padding: 0 4px; line-height: 1; transition: color 0.15s; }
   .debt-remove:hover { color: var(--red); }
+  .debt-edit { background: none; border: none; cursor: pointer; color: var(--ink-muted); font-size: 14px; padding: 0 6px; line-height: 1; transition: color 0.15s; }
+  .debt-edit:hover { color: var(--teal); }
+  .edit-form { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 10px; }
+  .edit-form-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .edit-form-actions { display: flex; gap: 8px; }
+  .debt-remove:hover { color: var(--red); }
 
   .add-form { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 22px; margin-bottom: 20px; }
   .add-form-title { font-size: 14px; font-weight: 500; margin-bottom: 16px; }
@@ -904,7 +910,7 @@
   <div class="dash-nav">
     <button class="dash-tab active" id="tab-debts" onclick="switchTab('debts')">Mina skulder</button>
     <button class="dash-tab" id="tab-strategy" onclick="switchTab('strategy')">Strategi</button>
-    <button class="dash-tab" id="tab-ackord" onclick="switchTab('ackord')">Ackordsanalys</button>
+    <button class="dash-tab" id="tab-ackord" onclick="switchTab('ackord')">Min plan</button>
   </div>
 
   <div id="view-debts" class="page-inner">
@@ -945,7 +951,10 @@
   </div>
 
   <div id="view-strategy" class="page-inner" style="display:none;">
-    <div class="page-title">Välj din strategi</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <div class="page-title" style="margin-bottom:0;">Välj din strategi</div>
+      <button onclick="switchTab('debts')" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--ink-muted);font-family:inherit;padding:0;">← Mina skulder</button>
+    </div>
     <div class="page-sub">Alla tre tar dig i mål — men på olika sätt.</div>
     <div class="strat-cards">
       <div class="strat-card selected" onclick="pickStrategy('avalanche',this)">
@@ -963,13 +972,16 @@
     </div>
     <div class="compare-box"><div class="compare-header">Skuldfrihetsdatum per strategi</div><div id="compare-rows"></div></div>
     <div class="order-section"><div class="order-label">Betala i den här ordningen</div><div class="order-list" id="order-list"></div></div>
-    <button class="btn btn-teal" onclick="switchTab('ackord')">Se ackordsanalys →</button>
+    <button class="btn btn-teal" onclick="switchTab('ackord')">Se min plan →</button>
     <button class="btn btn-ghost" style="margin-top:10px;" onclick="openShareModal()">Dela min lösning →</button>
   </div>
 
   <div id="view-ackord" class="page-inner" style="display:none;">
-    <div class="page-title">Ackordsanalys</div>
-    <div class="page-sub">Välj hur du vill komma igång.</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <div class="page-title" style="margin-bottom:0;">Min plan</div>
+      <button onclick="switchTab('strategy')" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--ink-muted);font-family:inherit;padding:0;">← Strategi</button>
+    </div>
+    <div class="page-sub">Lägg in dina skulder och vi tar fram en plan.</div>
 
     <!-- STEP 1: VAL AV METOD -->
     <!-- ACKORD-GUIDE SEKTION -->
@@ -1808,6 +1820,49 @@ function addDebt() {
 
 function removeDebt(id) { debts=debts.filter(d=>String(d.id)!==String(id)); saveState(); renderAll(); }
 
+function startEditDebt(id) {
+  const d = debts.find(function(d){ return String(d.id)===String(id); });
+  if (!d) return;
+  const item = document.querySelector('.debt-item[data-id="'+id+'"]');
+  if (!item) return;
+  // Ersätt debt-item med edit-formulär
+  const form = document.createElement('div');
+  form.className = 'edit-form';
+  form.innerHTML =
+    '<div class="add-form-title" style="font-size:13px;margin-bottom:10px;">Redigera skuld</div>' +
+    '<div class="edit-form-row">' +
+      '<div class="field-group" style="margin:0;"><div class="field-label">Belopp (kr)</div>' +
+        '<input type="number" id="edit-amt" value="'+d.amount+'" min="0"></div>' +
+      '<div class="field-group" style="margin:0;"><div class="field-label">Ränta per år (%)</div>' +
+        '<input type="number" id="edit-rate" value="'+d.rate+'" min="0" max="100" step="0.1"></div>' +
+      '<div class="field-group" style="margin:0;"><div class="field-label">Betalning/mån (kr)</div>' +
+        '<input type="number" id="edit-pay" value="'+d.payment+'" min="0"></div>' +
+    '</div>' +
+    '<div class="edit-form-actions">' +
+      '<button class="btn btn-teal" id="edit-save-btn" style="height:38px;font-size:13px;flex:1;">Spara</button>' +
+      '<button class="btn btn-ghost" id="edit-cancel-btn" style="height:38px;font-size:13px;width:auto;padding:0 16px;">Avbryt</button>' +
+    '</div>';
+  item.replaceWith(form);
+  form.querySelector('#edit-save-btn').addEventListener('click', function() { saveEditDebt(id, form); });
+  form.querySelector('#edit-cancel-btn').addEventListener('click', function() { renderAll(); });
+  form.querySelector('#edit-amt').focus();
+}
+
+function saveEditDebt(id, form) {
+  const d = debts.find(function(d){ return String(d.id)===String(id); });
+  if (!d) return;
+  const amt = parseFloat(form.querySelector('#edit-amt').value);
+  const rate = parseFloat(form.querySelector('#edit-rate').value) || 0;
+  const pay = parseFloat(form.querySelector('#edit-pay').value) || 0;
+  if (!amt || amt <= 0) { showNotice('Ange ett giltigt belopp.'); return; }
+  d.amount = amt;
+  d.rate = rate;
+  d.payment = pay;
+  saveState();
+  renderAll();
+  showNotice('Skuld uppdaterad!', 'success');
+}
+
 function renderAll() {
   const list=document.getElementById('debt-list');
   let empty=document.getElementById('empty-msg');
@@ -1832,13 +1887,24 @@ function renderAll() {
     return;
   }
   if (empty.parentNode) empty.parentNode.removeChild(empty);
-  list.innerHTML=debts.map(d=>`
-    <div class="debt-item">
-      <div class="debt-color-dot" style="background:${d.color}"></div>
-      <div class="debt-info"><div class="debt-name">${d.name}</div><div class="debt-meta">${d.rate}% ränta · ${fmt(d.payment)} kr/mån</div></div>
-      <div class="debt-amount">${fmt(d.amount)} kr</div>
-      <button class="debt-remove" data-id="${d.id}" onclick="removeDebt(this.dataset.id)">×</button>
-    </div>`).join('');
+  list.innerHTML='';
+  debts.forEach(function(d) {
+    const item = document.createElement('div');
+    item.className = 'debt-item';
+    item.dataset.id = d.id;
+    item.innerHTML =
+      '<div class="debt-color-dot" style="background:' + d.color + '"></div>' +
+      '<div class="debt-info">' +
+        '<div class="debt-name">' + sanitize(d.name) + '</div>' +
+        '<div class="debt-meta">' + d.rate + '% ränta · ' + fmt(d.payment) + ' kr/mån</div>' +
+      '</div>' +
+      '<div class="debt-amount">' + fmt(d.amount) + ' kr</div>' +
+      '<button class="debt-edit" title="Redigera">✎</button>' +
+      '<button class="debt-remove" title="Ta bort">×</button>';
+    item.querySelector('.debt-remove').addEventListener('click', function() { removeDebt(d.id); });
+    item.querySelector('.debt-edit').addEventListener('click', function() { startEditDebt(d.id); });
+    list.appendChild(item);
+  });
   const pct=Math.min(100,debts.length*20);
   document.getElementById('prog-fill').style.width=pct+'%';
   document.getElementById('prog-label').textContent=debts.length+' skuld'+(debts.length>1?'er':'')+' tillagd'+(debts.length>1?'a':'');
@@ -1861,7 +1927,7 @@ function switchTab(name) {
   });
   if (name==='debts') renderAll();
   if (name==='strategy') renderStrategy();
-  if (name==='ackord') { renderAckord(); }
+  if (name==='ackord') { renderAckord(); autoImportToAckord(); }
 }
 
 function pickStrategy(name, el) {
@@ -1883,9 +1949,25 @@ function renderStrategy() {
     {key:'snowball',label:'Snowball',sorted:[...debts].sort((a,b)=>a.amount-b.amount),cls:'bar-purple'},
     {key:'balanced',label:'Balanserad',sorted:[...debts],cls:'bar-amber'}
   ];
-  const results=configs.map(c=>{
-    const m=Math.max(...c.sorted.map(d=>{const r=freeDate(d.amount,d.rate,d.payment);return r?r.months:600;}));
-    return {...c,months:m};
+  const totalPay = debts.reduce(function(s,d){return s+d.payment;},0);
+  const results=configs.map(function(c){
+    // Simulera betalning med snöbollseffekt - frigör pengar när skulder betalas
+    let remaining = c.sorted.map(function(d){return {amount:d.amount,rate:d.rate,payment:d.payment};});
+    let month = 0;
+    let extra = 0;
+    while (remaining.length > 0 && month < 600) {
+      month++;
+      const r = remaining[0];
+      const interest = r.amount * (r.rate/100/12);
+      const pay = Math.min(r.amount + interest, r.payment + extra);
+      r.amount = r.amount + interest - pay;
+      if (r.amount <= 0.01) {
+        extra = pay - (r.amount + interest - Math.max(0,r.amount));
+        extra += r.payment;
+        remaining.shift();
+      } else { extra = 0; }
+    }
+    return {...c, months: month};
   });
   const maxM=Math.max(...results.map(r=>r.months));
   document.getElementById('compare-rows').innerHTML=results.map(r=>`
@@ -2169,6 +2251,269 @@ function updateAckComplete(card, d) {
   indicator.style.color = isComplete ? 'var(--teal)' : 'var(--amber)';
 }
 
+
+// ============================================================
+// HELHETSPLAN
+// ============================================================
+
+function buildHolisticPlan(debts, lumpSum, monthlyBudget) {
+  const MNS = ['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'];
+  let remainingLump = lumpSum || 0;
+  let remainingMonthly = monthlyBudget || 0;
+  let totalSaving = 0;
+  let totalMonthsToFree = 0;
+  const COLORS_P = ['#0d7a5f','#1aab84','#c97a1a','#4a3ab7','#c94a2e'];
+
+  const sorted = [...debts].sort((a,b) => {
+    const sA = (a.ageMonths||0)*0.6 + (a.rate||0)*0.4;
+    const sB = (b.ageMonths||0)*0.6 + (b.rate||0)*0.4;
+    return sB - sA;
+  });
+
+  const plan = sorted.map((d,i) => {
+    const age = d.ageMonths || 0;
+    const rate = d.rate || 0;
+    const isPublic = (d.name||'').toLowerCase().includes('csn');
+    const isYoungLow = age < 6 && rate < 10;
+    const oPct = offerPct(age, d.status || 'inkasso');
+    const offerAmt = Math.round(d.amount * oPct);
+    const saving = d.amount - offerAmt;
+    let action, badge, desc, payNow = 0, monthlyPay = 0, months = 0, actualCost = d.amount;
+
+    if (isPublic || isYoungLow) {
+      action = 'Betala i sin helhet';
+      badge = 'plan-action-gray';
+      desc = isPublic ? 'Offentlig fordran — betala enligt ordinarie plan.' : 'Skulden är för ny för ackord. Betala av normalt.';
+      const mr = rate/100/12;
+      const pay = d.payment || Math.max(d.amount * mr * 1.1, 200);
+      months = mr > 0 ? Math.ceil(Math.log(pay/(pay-d.amount*mr))/Math.log(1+mr)) : Math.ceil(d.amount/pay);
+      monthlyPay = Math.round(pay);
+      remainingMonthly = Math.max(0, remainingMonthly - monthlyPay);
+    } else if (remainingLump >= offerAmt && age >= 12) {
+      action = 'Ackord mot direktbetalning';
+      badge = 'plan-action-teal';
+      desc = 'Erbjud ' + fmt(offerAmt) + ' kr som slutbetalning — ' + Math.round((1-oPct)*100) + '% avskrivning.';
+      payNow = offerAmt; remainingLump -= offerAmt;
+      totalSaving += saving; actualCost = offerAmt; months = 0;
+    } else if (remainingLump >= d.amount * 0.85) {
+      action = 'Direktbetalning — förhandla bort ränta';
+      badge = 'plan-action-amber';
+      desc = 'Betala kapitalet direkt och begär att räntor och avgifter stryks.';
+      payNow = Math.round(d.amount * 0.85);
+      totalSaving += d.amount - payNow; remainingLump -= payNow; actualCost = payNow;
+    } else if (remainingMonthly > 200 && age >= 12) {
+      action = 'Ackord med avbetalningsplan';
+      badge = 'plan-action-amber';
+      const frozenAmt = Math.round(d.amount * (oPct + 0.10));
+      totalSaving += d.amount - frozenAmt;
+      monthlyPay = Math.max(200, Math.min(remainingMonthly, Math.round(frozenAmt/24)));
+      months = Math.ceil(frozenAmt/monthlyPay);
+      remainingMonthly = Math.max(0, remainingMonthly - monthlyPay);
+      desc = 'Avbetalningsplan på ' + fmt(frozenAmt) + ' kr med fryst ränta. ' + fmt(monthlyPay) + ' kr/mån i ' + months + ' mån.';
+      actualCost = frozenAmt;
+    } else if (remainingMonthly > 100) {
+      action = 'Ändra avräkningsordning';
+      badge = 'plan-action-purple';
+      desc = 'Begär att betalningar avräknas mot kapital först (9 § räntelagen).';
+      monthlyPay = Math.min(remainingMonthly, d.payment || 300);
+      months = Math.ceil(d.amount/monthlyPay);
+      remainingMonthly = Math.max(0, remainingMonthly - monthlyPay);
+      totalSaving += Math.round(d.amount * 0.2);
+    } else {
+      action = 'Anstånd — betala senare';
+      badge = 'plan-action-red';
+      desc = 'Kontakta fordringsägaren och begär anstånd medan du löser övriga skulder.';
+      months = 36;
+    }
+
+    if (months > totalMonthsToFree) totalMonthsToFree = months;
+    return { debt: d, action, badge, desc, payNow, monthlyPay, months,
+             saving: d.amount - actualCost, priority: i+1, color: COLORS_P[i%COLORS_P.length] };
+  });
+
+  const fd = new Date();
+  fd.setMonth(fd.getMonth() + totalMonthsToFree);
+  const MN = MNS[fd.getMonth()];
+  const freeDateStr = totalMonthsToFree > 0 ? MN + ' ' + fd.getFullYear() : 'Direkt';
+
+  return { plan, totalSaving, freeDateStr, totalDebt: debts.reduce((s,d)=>s+d.amount,0) };
+}
+
+function renderHolisticPlan(parsedDebts, lumpSum, monthlyBudget) {
+  const summaryBar = document.getElementById('plan-summary-bar');
+  const planItems = document.getElementById('plan-items');
+  if (!lumpSum && !monthlyBudget) {
+    if (summaryBar) summaryBar.style.display = 'none';
+    if (planItems) planItems.innerHTML = '';
+    return;
+  }
+  const { plan, totalSaving, freeDateStr, totalDebt } = buildHolisticPlan(parsedDebts, lumpSum, monthlyBudget);
+  if (summaryBar) summaryBar.style.display = 'grid';
+  document.getElementById('plan-total-debt').textContent = fmt(totalDebt) + ' kr';
+  document.getElementById('plan-total-saving').textContent = totalSaving > 0 ? fmt(Math.round(totalSaving)) + ' kr' : '—';
+  document.getElementById('plan-free-date').textContent = freeDateStr;
+  window._currentPlan = plan;
+
+  if (planItems) planItems.innerHTML = plan.map(p => {
+    const creditorInfo = p.debt.creditor || p.debt.name;
+    return '<div class="plan-item">' +
+      '<div class="plan-item-head">' +
+        '<div class="plan-priority" style="background:' + p.color + '">' + p.priority + '</div>' +
+        '<div style="flex:1;">' +
+          '<div class="plan-item-name">' + sanitize(creditorInfo) + '</div>' +
+          '<div style="font-size:11px;color:var(--ink-muted);margin-top:1px;">' +
+            (p.debt.ageMonths > 0 ? p.debt.ageMonths + ' mån sedan · ' : '') +
+            (p.debt.status ? p.debt.status : 'inkasso') +
+          '</div>' +
+        '</div>' +
+        '<div class="plan-item-amount">' + fmt(p.debt.amount) + ' kr</div>' +
+      '</div>' +
+      '<div class="plan-action-badge ' + p.badge + '">' + p.action + '</div>' +
+      '<div class="plan-desc">' + p.desc + '</div>' +
+      '<div class="plan-numbers">' +
+        (p.payNow > 0 ? '<div class="plan-num saving"><strong>' + fmt(p.payNow) + ' kr</strong> betala nu</div>' : '') +
+        (p.monthlyPay > 0 ? '<div class="plan-num"><strong>' + fmt(p.monthlyPay) + ' kr/mån</strong>' + (p.months > 0 ? ' · ' + p.months + ' mån' : '') + '</div>' : '') +
+        (p.saving > 0 ? '<div class="plan-num saving"><strong>−' + fmt(Math.round(p.saving)) + ' kr</strong> besparing</div>' : '') +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// ============================================================
+// VISA ACKORDSRESULTAT
+// ============================================================
+
+function showAckordResults(parsedDebts, filename) {
+  document.getElementById('ack-step-parsing').style.display = 'none';
+  document.getElementById('ack-step-results').style.display = 'block';
+  window._currentUser = user;
+
+  const sorted = [...parsedDebts].sort((a,b) => {
+    const cA = ackordChance(a.ageMonths||0, a.status||'inkasso');
+    const cB = ackordChance(b.ageMonths||0, b.status||'inkasso');
+    return cB - cA;
+  });
+
+  const lumpAmt = parseFloat(document.getElementById('ack-lump-amount')?.value) || 0;
+  const monthlyBudget = parseFloat(document.getElementById('ack-monthly-budget')?.value) ||
+                        parseFloat(document.getElementById('payment')?.value) || 0;
+  renderHolisticPlan(parsedDebts, lumpAmt, monthlyBudget);
+
+  const prem = document.getElementById('prem-gate');
+  if (prem) prem.style.display = (!premiumOn || premiumOn === false) && parsedDebts.length > 2 ? 'block' : 'none';
+  const guide = document.getElementById('ackord-guide');
+  if (guide) guide.style.display = 'none';
+
+  const banner = document.getElementById('uc-banner');
+  if (banner && filename) {
+    banner.style.cssText = 'background:var(--teal-light);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--teal);font-weight:500;';
+    banner.textContent = 'UC-rapport analyserad: ' + filename + ' · ' + parsedDebts.length + ' skulder hittade';
+  }
+}
+
+// ============================================================
+// PREMIUM-UPPLÅSNING
+// ============================================================
+
+function unlockLevel(level) {
+  premiumOn = level; saveState();
+  const gate = document.getElementById('prem-gate');
+  if (gate) gate.style.display = 'none';
+  if (level >= 2) renderDynamicGuide();
+  if (level === 1) showNotice('Åtgärdsförslag upplåst!', 'success');
+}
+
+function unlockPremium() { unlockLevel(3); }
+
+// ============================================================
+// DYNAMISK GUIDE + BREVMALLAR
+// ============================================================
+
+function buildLetter(debt, action, offerAmt) {
+  const creditor = debt.creditor || debt.name || '[Fordringsägarens namn]';
+  const amount = fmt(debt.amount);
+  const today = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const dateStr = today.getFullYear()+'-'+pad(today.getMonth()+1)+'-'+pad(today.getDate());
+  const deadline = new Date(today); deadline.setDate(deadline.getDate()+14);
+  const deadlineStr = deadline.getFullYear()+'-'+pad(deadline.getMonth()+1)+'-'+pad(deadline.getDate());
+  const userName = (window._currentUser && window._currentUser.name) ? window._currentUser.name : '[Ditt namn]';
+
+  if (action === 'Ackord mot direktbetalning' || action === 'Direktbetalning — förhandla bort ränta') {
+    return dateStr+'\n\nTill: '+creditor+'\nAngående: Förfrågan om ackordsuppgörelse\n\nHej,\n\nJag kontaktar er med anledning av en skuld på '+amount+' kr som jag önskar reglera slutgiltigt.\n\nJag har möjlighet att betala '+offerAmt+' kr som en engångsbetalning och föreslår att detta accepteras som slutlig reglering inklusive upplupen ränta och samtliga avgifter.\n\nErbjudandet gäller till och med '+deadlineStr+'. Jag förutsätter skriftlig bekräftelse på att skulden skrivs av i sin helhet innan betalning genomförs.\n\nMed vänliga hälsningar,\n'+userName;
+  }
+  if (action === 'Ackord med avbetalningsplan') {
+    return dateStr+'\n\nTill: '+creditor+'\nAngående: Förfrågan om avbetalningsplan med fryst ränta\n\nHej,\n\nJag önskar upprätta en avbetalningsplan för en skuld på '+amount+' kr. Jag föreslår '+offerAmt+' kr per månad utan ytterligare ränta eller avgifter.\n\nErbjudandet gäller till och med '+deadlineStr+'. Jag ber er bekräfta skriftligt att räntan fryses och att skulden skrivs av när planen är fullföljd.\n\nMed vänliga hälsningar,\n'+userName;
+  }
+  if (action === 'Ändra avräkningsordning') {
+    return dateStr+'\n\nTill: '+creditor+'\nAngående: Begäran om ändrad avräkningsordning\n\nHej,\n\nMed hänvisning till 9 § räntelagen meddelar jag att mina betalningar ska avräknas mot kapitalskulden i första hand.\n\nJag avser att betala '+offerAmt+' kr per månad och begär skriftlig bekräftelse på ändrad avräkningsordning.\n\nMed vänliga hälsningar,\n'+userName;
+  }
+  return dateStr+'\n\nTill: '+creditor+'\nAngående: Begäran om avbetalningsplan\n\nHej,\n\nJag önskar upprätta en avbetalningsplan för en skuld på '+amount+' kr. Jag kan betala '+offerAmt+' kr per månad och ber er bekräfta att inga ytterligare avgifter tillkommer.\n\nMed vänliga hälsningar,\n'+userName;
+}
+
+function renderDynamicGuide() {
+  const guide = document.getElementById('ackord-guide');
+  const sections = document.getElementById('guide-sections');
+  if (!guide || !sections) return;
+  const plan = window._currentPlan;
+  if (!plan || plan.length === 0) { guide.style.display = 'none'; return; }
+  guide.style.display = 'block';
+  const actionable = plan.filter(p => p.action !== 'Anstånd — betala senare' && p.action !== 'Betala i sin helhet');
+  if (actionable.length === 0) { guide.style.display = 'none'; return; }
+  window._letters = [];
+
+  sections.innerHTML = actionable.map((p,i) => {
+    const creditor = p.debt.creditor || p.debt.name;
+    const offerAmtRaw = p.payNow > 0 ? fmt(p.payNow) : (p.monthlyPay > 0 ? fmt(p.monthlyPay) : '—');
+    const letter = buildLetter(p.debt, p.action, offerAmtRaw);
+    window._letters.push(letter);
+    const isAckord = p.action.indexOf('Ackord') >= 0 || p.action.indexOf('Direktbetalning') >= 0;
+    const steps = isAckord ? [
+      {n:'1', title:'Verifiera att de äger skulden', desc:'Ring '+sanitize(creditor)+' och fråga: "Äger ni skulden eller driver ni in den som ombud?" Det avgör vem som kan fatta beslut.', tag:'Samtal'},
+      {n:'2', title:'Be om ackordsansvarig', desc:'Kundtjänst kan inte fatta beslut. Säg: "Jag vill prata med någon som hanterar ackordsuppgörelser." Var lugn — du har ett konkret erbjudande.', tag:'Samtal'},
+      {n:'3', title:'Presentera erbjudandet', desc:'Erbjud '+offerAmtRaw+' kr som slutbetalning. Nämn att alternativet är skuldsanering via Kronofogden.', tag:'Förhandling'},
+      {n:'4', title:'Kräv skriftlig bekräftelse', desc:'Accepterar de — bra. Skicka brevet nedan och be dem bekräfta via e-post. Betala aldrig utan skriftligt avtal.', tag:'Dokument'}
+    ] : [
+      {n:'1', title:'Kontakta '+sanitize(creditor), desc:'Ring och be om avbetalningsplan. Du har rätt att begära detta. Var tydlig med vad du kan betala per månad.', tag:'Samtal'},
+      {n:'2', title:'Begär fryst ränta', desc:'Räntan fortsätter ticka tills ni kommit överens. Begär att den fryses från datum för överenskommelsen.', tag:'Förhandling'},
+      {n:'3', title:'Kräv skriftlig bekräftelse', desc:'Avbetalningsplan och fryst ränta ska bekräftas skriftligt. E-post räcker.', tag:'Dokument'}
+    ];
+
+    return '<div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;margin-bottom:16px;">' +
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:14px;border-bottom:0.5px solid var(--border);">' +
+        '<div class="plan-priority" style="background:'+p.color+'">'+p.priority+'</div>' +
+        '<div style="flex:1;"><div style="font-size:14px;font-weight:500;color:var(--ink);">'+sanitize(creditor)+'</div>' +
+        '<div style="font-size:11px;color:var(--ink-muted);">'+p.action+'</div></div>' +
+        '<div class="plan-action-badge '+p.badge+'">'+offerAmtRaw+' kr</div>' +
+      '</div>' +
+      '<div class="guide-section">' +
+        steps.map(s => '<div class="guide-item"><div class="guide-num">'+s.n+'</div><div>' +
+          '<div class="guide-title">'+s.title+'</div>' +
+          '<div class="guide-desc">'+s.desc+'</div>' +
+          '<div class="guide-tag tag-teal">'+s.tag+'</div></div></div>').join('') +
+      '</div>' +
+      '<div class="template-box" style="margin-top:16px;">' +
+        '<div class="template-label">Brevmall — '+sanitize(creditor)+'</div>' +
+        '<div class="template-text" style="white-space:pre-wrap;">'+sanitize(letter)+'</div>' +
+        '<button class="copy-btn" onclick="copyLetter('+i+')">Kopiera brev →</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function copyLetter(i) {
+  const text = (window._letters || [])[i] || '';
+  navigator.clipboard.writeText(text)
+    .then(() => showNotice('Brev kopierat!', 'success'))
+    .catch(() => showNotice('Markera texten och kopiera manuellt.'));
+}
+
+// Auto-importera skulder när Min plan-fliken öppnas
+function autoImportToAckord() {
+  if (debts.length > 0 && ackDebts.length === 0) {
+    importDebtFromDashboard();
+  }
+}
 
 </script>
 </body>
