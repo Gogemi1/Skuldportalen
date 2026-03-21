@@ -590,6 +590,9 @@
     .auth-card { padding: 24px 20px; }
     .dash-nav { padding: 0 20px; }
   }
+
+  .tab-step { display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:50%; background:var(--border); color:var(--ink-muted); font-size:10px; font-weight:600; margin-right:6px; transition:all 0.2s; }
+  .dash-tab.active .tab-step { background:var(--teal); color:var(--white); }
 </style>
 </head>
 <body>
@@ -599,7 +602,7 @@
   <div class="nav-links">
     <a href="#" onclick="event.preventDefault();showPage('home')">Hem</a>
     <a href="#" onclick="event.preventDefault();showPage('about')">Om oss</a>
-    <a href="#" onclick="event.preventDefault();showPage('budget')">Budgetsimulator</a>
+    <a href="#" onclick="event.preventDefault();if(user){showPage('debts');setTimeout(function(){switchTab('budget');},50);}else{showPage('budget');}">Budgetsimulator</a>
     <div id="nav-loggedout" style="display:flex;align-items:center;">
       <a href="#" class="nav-cta" onclick="event.preventDefault();showPage('register')">Se ditt datum</a>
     </div>
@@ -631,7 +634,7 @@
     <div class="hero-left">
       <div class="hero-tag"><div class="hero-tag-dot"></div>Gratis att prova — inget konto behövs</div>
       <h1>Från skuld<br>till <em>fri</em>het</h1>
-      <p class="hero-sub">Fyll i din skuld nedan — vi visar dig exakt när du är fri och ger dig en strategi som faktiskt fungerar.</p>
+      <p class="hero-sub">Fyll i dina skulder — vi visar exakt när du är skuldfri och vad du kan göra för att komma dit snabbare.</p>
       <div class="hero-stats">
         <div><div class="stat-num">125 mdr</div><div class="stat-label">Obetalda inkassoskulder i Sverige</div></div>
         <div><div class="stat-num">9 milj</div><div class="stat-label">Nya inkassoärenden under 2024</div></div>
@@ -664,7 +667,7 @@
           </div>
           <div class="result-boost" id="res-boost-msg"></div>
 
-          <button class="btn btn-teal" onclick="handleSave()" style="margin-top:4px;">Kom igång — spara mitt datum →</button>
+          <button class="btn btn-teal" onclick="handleSave()" style="margin-top:4px;">Kom igång gratis →</button>
           <button class="btn btn-ghost" onclick="handleAddMore()">+ Lägg till fler skulder</button>
         </div>
       </div>
@@ -691,7 +694,7 @@
     <div class="section-title">Tre steg från kaos till kontroll</div>
     <div class="steps-grid">
       <div class="step-card" data-num="1"><div class="step-icon icon-teal">📋</div><h3>Lägg in dina skulder</h3><p>Ange belopp, ränta och vad du kan betala. Vi fyller i standardvärden om du inte vet — det tar under tre minuter.</p></div>
-      <div class="step-card" data-num="2"><div class="step-icon icon-amber">📊</div><h3>Få din strategi</h3><p>Välj mellan snowball, avalanche eller balanserad. Se exakt i vilken ordning du betalar och hur mycket du sparar.</p></div>
+      <div class="step-card" data-num="2"><div class="step-icon icon-amber">📊</div><h3>Fyll i din budget</h3><p>Vi räknar ut vad du har kvar varje månad och fördelar det optimalt på dina skulder — med 40% buffert för oväntade utgifter.</p></div>
       <div class="step-card" data-num="3"><div class="step-icon icon-red">🤝</div><h3>Förhandla ned skulden</h3><p>Med Premium-analysen ser du vilka skulder som kan förhandlas ned — och får mallar för att kontakta fordringsägarna direkt.</p></div>
     </div>
   </section>
@@ -915,15 +918,21 @@
 <!-- DASHBOARD -->
 <div class="page" id="page-debts">
   <div class="dash-nav">
-    <button class="dash-tab active" id="tab-budget" onclick="switchTab('budget')">Budget</button>
-    <button class="dash-tab" id="tab-debts" onclick="switchTab('debts')">Mina skulder</button>
-    <button class="dash-tab" id="tab-ackord" onclick="switchTab('ackord')">Min plan</button>
+    <button class="dash-tab active" id="tab-budget" onclick="switchTab('budget')">
+      <span class="tab-step">1</span> Budget
+    </button>
+    <button class="dash-tab" id="tab-debts" onclick="switchTab('debts')">
+      <span class="tab-step">2</span> Mina skulder
+    </button>
+    <button class="dash-tab" id="tab-ackord" onclick="switchTab('ackord')">
+      <span class="tab-step">3</span> Min plan
+    </button>
   </div>
 
 
   <div id="view-budget" class="dash-view" style="display:none;">
-    <div class="page-title">Din budget</div>
-    <div class="page-sub">Fyll i inkomst och utgifter — vi räknar ut vad du kan lägga på dina skulder.</div>
+    <div class="page-title">Vad har du kvar varje månad?</div>
+    <div class="page-sub">Fyll i din inkomst och dina utgifter — vi räknar ut hur mycket som kan gå till dina skulder och hur snabbt du kan bli skuldfri.</div>
     <div class="add-form" style="margin-top:16px;">
       <div class="add-form-title">Inkomst per månad</div>
       <div class="form-row" style="grid-template-columns:1fr 1fr;">
@@ -982,7 +991,7 @@
           <input type="number" id="add-amt" placeholder="t.ex. 15 000" min="0">
         </div>
         <div class="field-group">
-          <div class="field-label">Ursprungsbelopp (kr) <span style="font-size:10px;color:var(--ink-muted);font-weight:300;">valfritt</span></div>
+          <div class="field-label">Ursprungsbelopp (kr) <span style="font-size:10px;color:var(--ink-muted);font-weight:300;">valfritt — vad du ursprungligen lånade</span></div>
           <input type="number" id="add-principal" placeholder="Kapitalbelopp" min="0">
         </div>
         <div class="field-group">
@@ -1027,37 +1036,14 @@
 
   </div>
 
-  <div id="view-strategy" class="page-inner" style="display:none;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-      <div class="page-title" style="margin-bottom:0;">Välj din strategi</div>
-      <button onclick="switchTab('debts')" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--ink-muted);font-family:inherit;padding:0;">← Mina skulder</button>
-    </div>
-    <div class="page-sub">Alla tre tar dig i mål — men på olika sätt.</div>
-    <div class="strat-cards">
-      <div class="strat-card selected" onclick="pickStrategy('avalanche',this)">
-        <div class="strat-head"><div class="strat-name">Avalanche</div><div class="strat-badge badge-rec">Rekommenderas</div></div>
-        <div class="strat-desc">Betala av den dyraste skulden (högst ränta) först. Du sparar mest pengar totalt.</div>
-      </div>
-      <div class="strat-card" onclick="pickStrategy('snowball',this)">
-        <div class="strat-head"><div class="strat-name">Snowball</div><div class="strat-badge badge-mot">Motiverande</div></div>
-        <div class="strat-desc">Betala av den minsta skulden först. Du ser snabbast att skulder försvinner helt.</div>
-      </div>
-      <div class="strat-card" onclick="pickStrategy('balanced',this)">
-        <div class="strat-head"><div class="strat-name">Balanserad</div><div class="strat-badge badge-bal">Mellanalternativ</div></div>
-        <div class="strat-desc">Fördelar extra betalningar jämnt. Lättast att hålla koll på varje månad.</div>
-      </div>
-    </div>
-    <div class="compare-box"><div class="compare-header">Skuldfrihetsdatum per strategi</div><div id="compare-rows"></div></div>
-    <div class="order-section"><div class="order-label">Betala i den här ordningen</div><div class="order-list" id="order-list"></div></div>
-
-  </div>
+  
 
   <div id="view-ackord" class="dash-view" style="display:none;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
       <div class="page-title" style="margin-bottom:0;">Min plan</div>
       <button onclick="switchTab('debts')" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--ink-muted);font-family:inherit;padding:0;">← Mina skulder</button>
     </div>
-    <div class="page-sub">Komplettera dina skulder och vi tar fram en förhandlingsplan.</div>
+    <div class="page-sub">Kontrollera att uppgifterna stämmer — vi tar sedan fram din förhandlingsplan.</div>
     <div id="ack-budget-info" style="display:none;background:var(--teal-light);border-radius:var(--radius-sm);padding:10px 14px;margin-top:12px;font-size:13px;color:var(--teal);">
       Budget från steg 1: <strong id="ack-budget-val">—</strong> kr/mån tillgängligt för skulder (60% av överskott)
     </div>
@@ -1101,13 +1087,13 @@
       <!-- PREMIUM-GATE -->
       <div class="premium-gate" id="prem-gate" style="display:none;">
         <div class="pg-title">Ta nästa steg</div>
-        <div class="pg-subtitle">Du ser din plan gratis — välj hur mycket hjälp du vill ha att genomföra den.</div>
+        <div class="pg-subtitle">Din förhandlingsplan är klar. Nu behöver du hjälp att genomföra den — välj hur mycket stöd du vill ha.</div>
         <div class="pricing-grid">
           <div class="pricing-card" onclick="unlockLevel(1)">
             <div class="pricing-tier">Grundplan</div>
             <div class="pricing-price">49 <span>kr</span></div>
             <div class="pricing-sub">engångskostnad</div>
-            <div class="pricing-tagline">Steg-för-steg vad du ska göra för varje skuld.</div>
+            <div class="pricing-tagline">Du vet exakt vad du ska göra — men inte hur du formulerar det.</div>
             <div class="pricing-divider"></div>
             <div class="pricing-feature">Steg-för-steg-guide per skuld</div>
             <div class="pricing-feature">Exakt vem du ska kontakta</div>
@@ -1121,7 +1107,7 @@
             <div class="pricing-tier">Handlingsplan</div>
             <div class="pricing-price">99 <span>kr</span></div>
             <div class="pricing-sub">engångskostnad</div>
-            <div class="pricing-tagline">Guide + exakt vad du ska säga när du ringer.</div>
+            <div class="pricing-tagline">Du vet vad du ska göra och exakt vad du ska säga när du ringer.</div>
             <div class="pricing-divider"></div>
             <div class="pricing-feature">Allt i Grundplan</div>
             <div class="pricing-feature">Samtalsmanus per skuld</div>
@@ -1134,7 +1120,7 @@
             <div class="pricing-tier">Komplett</div>
             <div class="pricing-price">199 <span>kr</span></div>
             <div class="pricing-sub">engångskostnad</div>
-            <div class="pricing-tagline">Komplett förhandlingspaket — från första samtal till avslut.</div>
+            <div class="pricing-tagline">Allt du behöver — från första samtalet till skriftlig bekräftelse.</div>
             <div class="pricing-divider"></div>
             <div class="pricing-feature">Allt i Handlingsplan</div>
             <div class="pricing-feature">Brevmall per skuld — förifylld</div>
@@ -1144,7 +1130,7 @@
             <button class="pricing-btn pricing-btn-dark" onclick="unlockLevel(3)">Välj →</button>
           </div>
         </div>
-        <div class="pg-fine">Inte nöjd? Pengarna tillbaka inom 14 dagar.</div>
+        <div class="pg-fine" style="font-size:13px;color:var(--teal);font-weight:500;margin-top:16px;">✓ Inte nöjd? Pengarna tillbaka inom 14 dagar — inga frågor.</div>
       </div>
 
       <!-- GUIDE + MALLAR — RENDERAS DYNAMISKT PER SKULD -->
@@ -1153,7 +1139,7 @@
       </div>
 
       <div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap;">
-        <button class="btn btn-teal" style="flex:1;min-width:180px;" onclick="openShareModal()">Dela min lösning →</button>
+        <button class="btn btn-teal" style="flex:1;min-width:180px;display:none;" id="share-btn-result" onclick="openShareModal()">Dela min lösning →</button>
         <button class="btn btn-ghost" style="width:auto;padding:0 20px;" onclick="resetAckord()">← Börja om</button>
       </div>
     </div>
@@ -1313,7 +1299,7 @@
     <div class="auth-card">
       <div class="auth-logo">Skuld<span>portalen</span></div>
       <div class="auth-title">Skapa konto</div>
-      <div class="auth-sub">Spara din prognos lokalt i din webbläsare. Gratis — ingen server lagrar dina uppgifter.</div>
+      <div class="auth-sub">Skapa ett gratis konto och få din personliga skuldplan. Dina uppgifter lagras bara lokalt i din webbläsare — aldrig på våra servrar.</div>
       <div id="reg-date-reminder" style="display:none;background:var(--teal-light);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:16px;font-size:13px;color:var(--teal);font-weight:500;"></div>
       <div class="field-group">
         <div class="field-label">Namn</div>
@@ -1343,20 +1329,7 @@
       <div class="auth-sub">Logga in för att se din prognos och dina skulder.</div>
       <div class="field-group">
         <div class="field-label">E-postadress</div>
-        <input type="email" id="log-email" placeholder="din@email.se">
-        <div class="field-error" id="err-log-email">Ange din e-postadress</div>
-      </div>
-      <div class="field-group" style="margin-bottom:20px;">
-        <div class="field-label">Lösenord</div>
-        <input type="password" id="log-pw" placeholder="Ditt lösenord">
-        <div class="field-error" id="err-log-pw">Ange ditt lösenord</div>
-      </div>
-      <button class="btn btn-teal" onclick="login()">Logga in →</button>
-      
-
-
-
-
+        <input type="email" id="log-email" placeholder="din@email.
 <script>
 const COLORS = ['#0d7a5f','#7f77dd','#c97a1a','#c94a2e','#1aab84','#3a86c8'];
 const MN = ['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'];
@@ -1450,8 +1423,13 @@ document.addEventListener('DOMContentLoaded', function() {
   updateNav();
   if (user) {
     showPage('debts');
-    setTimeout(function(){ switchTab('budget'); }, 50);
-    if (debts.length) renderAll();
+    setTimeout(function(){
+      switchTab('budget');
+      // Kör updateDashBudget så budget-innehållet renderas
+      if (typeof updateDashBudget === 'function') updateDashBudget();
+      // Rendera skulder om de finns
+      if (debts.length) renderAll();
+    }, 100);
   } else {
     showPage('home');
     calculate();
@@ -2653,7 +2631,10 @@ function unlockLevel(level) {
   const gate = document.getElementById('prem-gate');
   if (gate) gate.style.display = 'none';
   if (level >= 2) renderDynamicGuide();
+  if (level >= 3) showPdfButton();
   if (level === 1) showNotice('Åtgärdsförslag upplåst!', 'success');
+  const shareBtn = document.getElementById('share-btn-result');
+  if (shareBtn) shareBtn.style.display = 'block';
 }
 
 function unlockPremium() { unlockLevel(3); }
@@ -3183,6 +3164,9 @@ function unlockLevel(level) {
   if (level >= 2) renderDynamicGuide();
   if (level >= 3) showPdfButton();
   if (level === 1) showNotice('Åtgärdsförslag upplåst!', 'success');
+  // Visa dela-knappen efter köp
+  const shareBtn = document.getElementById('share-btn-result');
+  if (shareBtn) shareBtn.style.display = 'block';
 }
 function showPdfButton() {
   const guide = document.getElementById('ackord-guide');
