@@ -41,6 +41,8 @@
 
   /* HOME */
   .hero { max-width: 980px; margin: 0 auto; padding: 80px 40px 60px; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; }
+  .hero-left { display: flex; flex-direction: column; justify-content: flex-start; }
+  .hero-right { display: flex; flex-direction: column; }
   .hero-tag { display: inline-flex; align-items: center; gap: 7px; background: var(--teal-light); color: var(--teal); font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 99px; margin-bottom: 24px; }
   .hero-tag-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--teal-mid); }
   h1 { font-family: 'DM Serif Display', serif; font-size: 48px; line-height: 1.08; letter-spacing: -1.5px; margin-bottom: 20px; }
@@ -117,6 +119,7 @@
   .dash-tab:hover { color: var(--ink); }
   .dash-tab.active { color: var(--teal); border-bottom-color: var(--teal); font-weight: 500; }
   .page-inner { max-width: 760px; margin: 0 auto; padding: 52px 40px 80px; }
+  .dash-view { padding: 28px 40px 60px; max-width: 860px; width: 100%; box-sizing: border-box; margin: 0 auto; }
   .page-title { font-family: 'DM Serif Display', serif; font-size: 36px; letter-spacing: -0.8px; margin-bottom: 6px; }
   .page-sub { font-size: 15px; color: var(--ink-soft); font-weight: 300; margin-bottom: 36px; }
 
@@ -445,9 +448,10 @@
   .plan-num.saving strong { color: var(--teal); }
 
   /* INLINE KOMPLETTERING */
-  .ack-debt-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; }
-  .ack-debt-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-  .ack-debt-card-name { font-size: 14px; font-weight: 500; color: var(--ink); flex: 1; }
+  .ack-manual-list-wrap { width: 100%; }
+  .ack-debt-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 10px; width: 100%; box-sizing: border-box; }
+  .ack-debt-card-head { display: flex; align-items: center; gap: 12px; padding: 2px 0; }
+  .ack-debt-card-name { font-size: 14px; font-weight: 500; color: var(--ink); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .ack-debt-card-amount { font-size: 14px; font-weight: 500; color: var(--ink); }
   .ack-debt-card-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .ack-field-label { font-size: 11px; color: var(--ink-muted); margin-bottom: 4px; font-weight: 400; }
@@ -659,6 +663,7 @@
           </div>
           <div class="result-boost" id="res-boost-msg"></div>
 
+          <button class="btn btn-teal" onclick="handleSave()" style="margin-top:4px;">Kom igång — spara mitt datum →</button>
           <button class="btn btn-ghost" onclick="handleAddMore()">+ Lägg till fler skulder</button>
         </div>
       </div>
@@ -915,7 +920,7 @@
   </div>
 
 
-  <div id="view-budget" class="page-inner" style="display:none;">
+  <div id="view-budget" class="dash-view" style="display:none;">
     <div class="page-title">Din budget</div>
     <div class="page-sub">Fyll i inkomst och utgifter — vi räknar ut vad du kan lägga på dina skulder.</div>
     <div class="add-form" style="margin-top:16px;">
@@ -950,7 +955,7 @@
     </div>
   </div>
 
-  <div id="view-debts" class="page-inner">
+  <div id="view-debts" class="dash-view" style="display:none;">
     <div id="welcome-banner" style="display:none;background:var(--teal-light);border:1px solid rgba(13,122,95,0.2);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--teal);font-weight:500;"></div>
     <div class="page-title">Dina skulder</div>
     <div class="page-sub">Lägg till alla skulder för en fullständig bild.</div>
@@ -1011,8 +1016,13 @@
       </div>
       <div id="add-success" style="display:none;font-size:12px;color:var(--teal);font-weight:500;margin-top:8px;text-align:center;animation:fadeUp 0.3s ease both;">✓ Skuld tillagd!</div>
     </div>
-    <div class="total-summary" id="total-box" style="display:none;">
-al" id="to-strat-btn" style="display:none;" onclick="switchTab('ackord')">Se min plan →</button>
+    <div claclass="total-summary" id="total-box" style="display:none;"></div>
+    <div id="freedom-date-card" style="display:none;background:var(--teal-light);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:12px;">
+      <div style="font-size:11px;color:var(--teal);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">Skuldfri</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:24px;color:var(--teal);letter-spacing:-0.5px;" id="freedom-date-val">—</div>
+      <div style="font-size:11px;color:var(--teal);opacity:0.8;margin-top:2px;" id="freedom-date-months"></div>
+    </div>
+    <button class="btn btn-teal" id="to-strat-btn" style="display:none;" onclick="switchTab('ackord')">Se min plan →</button>
 
   </div>
 
@@ -1041,122 +1051,24 @@ al" id="to-strat-btn" style="display:none;" onclick="switchTab('ackord')">Se min
 
   </div>
 
-  <div id="view-ackord" class="page-inner" style="display:none;">
+  <div id="view-ackord" class="dash-view" style="display:none;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
       <div class="page-title" style="margin-bottom:0;">Min plan</div>
       <button onclick="switchTab('debts')" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--ink-muted);font-family:inherit;padding:0;">← Mina skulder</button>
     </div>
     <div class="page-sub">Komplettera dina skulder och vi tar fram en förhandlingsplan.</div>
+    <div id="ack-budget-info" style="display:none;background:var(--teal-light);border-radius:var(--radius-sm);padding:10px 14px;margin-top:12px;font-size:13px;color:var(--teal);">
+      Budget från steg 1: <strong id="ack-budget-val">—</strong> kr/mån tillgängligt för skulder (60% av överskott)
+    </div>
 
 
 
     <div id="ack-step-upload">
-
-      <!-- METODVAL -->
-<div class="method-grid" style="grid-template-columns:repeat(3,1fr);">
-          <div class="method-card" onclick="showAckordMethod('manual')">
-            <div class="method-icon" style="background:var(--teal-light);">
-      <!-- MANUELL INMATNING -->
-      <div id="ack-manual-form">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-          <button onclick="showAckordMethod(null)" style="background:none;border:none;cursor:pointer;color:var(--ink-muted);font-size:13px;font-family:inherit;padding:0;">← Tillbaka</button>
-          <div style="display:flex;align-items:center;gap:6px;">
-            <div style="height:4px;width:32px;border-radius:99px;background:var(--teal);"></div>
-            <div style="height:4px;width:32px;border-radius:99px;background:var(--teal);opacity:0.3;" id="prog-step2"></div>
-            <div style="height:4px;width:32px;border-radius:99px;background:var(--teal);opacity:0.3;" id="prog-step3"></div>
-            <span style="font-size:11px;color:var(--ink-muted);margin-left:4px;" id="prog-step-label">Steg 1 av 3 — Skulder</span>
-          </div>
-        </div>
-
-        <div id="ack-manual-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;"></div>
-
-        <!-- BETALNINGSFÖRMÅGA -->
-        <div id="ack-payment-ability" style="display:none;">
-          <div class="field-group" style="margin-bottom:8px;">
-            <div class="field-label" style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:12px;">Kan du betala en summa nu, eller behöver du avbetala?</div>
-            <div class="payment-ability-grid">
-              <div class="pa-card" onclick="pickPaymentAbility(this,'lump')" data-ability="lump">
-                <div class="pa-card-icon">💰</div>
-                <div class="pa-card-title">Jag kan betala en summa på en gång</div>
-                <div class="pa-card-desc">Sparpengar, hjälp från andra eller genom att sälja något</div>
-              </div>
-              <div class="pa-card" onclick="pickPaymentAbility(this,'partial')" data-ability="partial">
-                <div class="pa-card-icon">💳</div>
-                <div class="pa-card-title">En del nu, resten månadsvis</div>
-                <div class="pa-card-desc">Jag har lite att betala direkt + kan avbetala resten</div>
-              </div>
-              <div class="pa-card" onclick="pickPaymentAbility(this,'installment')" data-ability="installment">
-                <div class="pa-card-icon">📅</div>
-                <div class="pa-card-title">Bara månadsvis</div>
-                <div class="pa-card-desc">Jag kan inte betala något direkt, bara lite varje månad</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Belopps-fält för klumpsumma/delvis -->
-          <div id="ack-lump-amount-section" style="display:none;margin-top:4px;">
-            <div class="field-label" style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:4px;" id="ack-lump-label">Hur mycket kan du samla ihop på kort tid om det gäller? (kr)</div>
-            <div style="font-size:11px;color:var(--ink-muted);margin-bottom:8px;line-height:1.5;">Tänk på sparpengar, hjälp från närstående eller om du kan sälja något — inte bara vad som finns på kontot idag.</div>
-            <input type="number" id="ack-lump-amount" placeholder="t.ex. 10 000" min="0" oninput="this.classList.toggle('has-value',!!this.value);updateLumpHint()">
-            <div id="ack-lump-hint" style="font-size:11px;color:var(--teal);margin-top:6px;display:none;"></div>
-          </div>
-
-          <!-- Månadsbudget -->
-          <div id="ack-monthly-section" style="margin-top:14px;">
-            <div class="field-label" style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:4px;">Vad har du kvar varje månad efter alla fasta utgifter? (kr)</div>
-            <div style="font-size:11px;color:var(--ink-muted);margin-bottom:8px;line-height:1.5;">Hyra, mat, transport — efter allt det. Osäker? Testa vår <span style="color:var(--teal);cursor:pointer;text-decoration:underline;" onclick="closeMobileMenu();showPage('budget')">budgetsimulator</span> så räknar vi ut det åt dig.</div>
-            <input type="number" id="ack-monthly-budget" placeholder="t.ex. 1 500" min="0" oninput="this.classList.toggle('has-value',!!this.value)">
-          </div>
-
-        </div>
-        <button class="btn btn-teal" id="ack-manual-submit" style="display:none;" onclick="submitManualAckord()">Analysera mina skulder →</button>
+      <div id="ack-manual-form" style="width:100%;">
+        <div id="ack-manual-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;width:100%;"></div>
+        <button class="btn btn-teal" id="ack-manual-submit" onclick="submitManualAckord()" style="width:100%;">Analysera mina skulder →</button>
       </div>
-
-      <!-- UC UPLOAD -->
-<div class="ackord-intro">
-          <div class="ackord-intro-title">Varför UC-rapporten?</div>
-          <div class="ackord-intro-text">Med din UC-rapport ser vi skuldens exakta ålder, ursprungsbelopp, upplupen ränta och nuvarande innehavare — och ger ett mer träffsäkert ackordsförslag.</div>
-        </div>
-        <div class="uc-steps">
-          <div class="uc-step-item">
-            <div class="uc-step-num">1</div>
-            <div class="uc-step-body">
-              <div class="uc-step-title">Hämta din UC-rapport gratis</div>
-              <div class="uc-step-desc">Gratis en gång per år med BankID. Tar ca 2 minuter.</div>
-              <a href="https://www.minuc.se/min-upplysning" target="_blank" class="uc-link">Hämta på minuc.se →</a>
-            </div>
-          </div>
-          <div class="uc-step-item">
-            <div class="uc-step-num">2</div>
-            <div class="uc-step-body">
-              <div class="uc-step-title">Ladda ned som PDF</div>
-              <div class="uc-step-desc">Välj "Ladda ned som PDF" på UC:s sida.</div>
-            </div>
-          </div>
-          <div class="uc-step-item">
-            <div class="uc-step-num">3</div>
-            <div class="uc-step-body">
-              <div class="uc-step-title">Ladda upp här — vi analyserar direkt</div>
-              <div class="uc-step-desc">Bearbetas lokalt. Ingenting lagras på server.</div>
-            </div>
-          </div>
-        </div>
-        <div class="upload-zone" id="upload-zone" onclick="document.getElementById('uc-file').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleDrop(event)">
-          <div class="upload-icon">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          </div>
-          <div class="upload-title">Dra hit din UC-rapport eller klicka för att välja</div>
-          <div class="upload-sub">PDF-format · Bearbetas lokalt · Lagras aldrig</div>
-          <input type="file" id="uc-file" accept=".pdf" style="display:none" onchange="handleFileSelect(event)">
-        </div>
-        <div class="upload-privacy">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          Bearbetas enbart i din webbläsare. Ingen data skickas till våra servrar.
-        </div>
-      </div>
-
     </div>
-
     <!-- STEP 2: PARSING LOADER -->
     <div id="ack-step-parsing" style="display:none;">
       <div class="parsing-box">
@@ -1439,12 +1351,7 @@ al" id="to-strat-btn" style="display:none;" onclick="switchTab('ackord')">Se min
         <div class="field-error" id="err-log-pw">Ange ditt lösenord</div>
       </div>
       <button class="btn btn-teal" onclick="login()">Logga in →</button>
-      <div class="auth-divider"><div class="auth-divider-line"></div><div class="auth-divider-text">eller</div><div class="auth-divider-line"></div></div>
-      <button class="btn btn-ghost" onclick="showPage('register')">Skapa nytt konto</button>
-      <div class="auth-switch"><a onclick="showPage('register')">Glömt lösenord?</a></div>
-    </div>
-  </div>
-</di<script>
+      <div class="auth-divider"><div class="auth-d
 
 
 const COLORS = ['#0d7a5f','#7f77dd','#c97a1a','#c94a2e','#1aab84','#3a86c8'];
@@ -1499,12 +1406,6 @@ function loadState() {
 }
 
 loadState();
-if (user) {
-  document.addEventListener("DOMContentLoaded", function() {
-    updateNav();
-    if (debts.length) renderAll();
-  });
-}
 
 function sanitize(str) {
   const d = document.createElement('div');
@@ -1541,12 +1442,15 @@ function showPage(p) {
 }
 // Sätt has-value och kör kalkylator automatiskt vid laddning
 document.addEventListener('DOMContentLoaded', function() {
-  // Om inloggad - sätt budget som aktiv flik
-  const savedUser = localStorage.getItem('sp_user');
-  if (savedUser) {
-    setTimeout(function(){ 
-      if (document.getElementById('tab-budget')) switchTab('budget');
-    }, 100);
+  // Visa rätt sida vid start
+  updateNav();
+  if (user) {
+    showPage('debts');
+    setTimeout(function(){ switchTab('budget'); }, 50);
+    if (debts.length) renderAll();
+  } else {
+    showPage('home');
+    calculate();
   }
   // Sätt max på datum-fält till idag
   const today = new Date().toISOString().split('T')[0];
@@ -1841,7 +1745,7 @@ function renderAll() {
 }
 
 function switchTab(name) {
-  ['budget','debts','strategy','ackord'].forEach(t=>{
+  ['budget','debts','ackord'].forEach(t=>{
     const tab = document.getElementById('tab-'+t);
     const view = document.getElementById('view-'+t);
     if (tab) tab.classList.toggle('active',t===name);
@@ -1849,12 +1753,11 @@ function switchTab(name) {
   });
   if (name==='debts') renderAll();
   if (name==='ackord') {
-    // Återställ alltid till rätt startläge
     const stepUpload = document.getElementById('ack-step-upload');
     const stepResults = document.getElementById('ack-step-results');
     const stepParsing = document.getElementById('ack-step-parsing');
     if (stepResults && stepResults.style.display === 'block') {
-      // Håll kvar resultaten om de redan visas
+      // Håll kvar resultaten
     } else {
       if (stepUpload) stepUpload.style.display = 'block';
       if (stepResults) stepResults.style.display = 'none';
@@ -1862,6 +1765,13 @@ function switchTab(name) {
     }
     renderAckord();
     autoImportToAckord();
+    // Visa budget-info
+    const ackBudgetInfo = document.getElementById('ack-budget-info');
+    const ackBudgetVal = document.getElementById('ack-budget-val');
+    if (ackBudgetInfo && dashBudgetMonthly > 0) {
+      ackBudgetInfo.style.display = 'block';
+      if (ackBudgetVal) ackBudgetVal.textContent = fmt(dashBudgetMonthly);
+    }
   }
 }
 
@@ -2104,35 +2014,47 @@ function removeAckDebt(id) {
 function renderAckManualList() {
   const list = document.getElementById('ack-manual-list');
   const btn = document.getElementById('ack-manual-submit');
-  const paSection = document.getElementById('ack-payment-ability');
-  if (ackDebts.length === 0) { list.innerHTML = ''; btn.style.display = 'none'; if(paSection) paSection.style.display='none'; return; }
-  if (paSection) paSection.style.display = 'block';
-  const step2 = document.getElementById('prog-step2');
-  if (step2) step2.style.opacity = '1';
-  const lbl = document.getElementById('prog-step-label');
-  if (lbl) lbl.textContent = 'Steg 2 av 3 — Resurser';
+  if (!list) return;
+  if (ackDebts.length === 0) {
+    list.innerHTML = '<div style="font-size:13px;color:var(--ink-muted);text-align:center;padding:20px;">Inga skulder importerade. Gå till Mina skulder och lägg till dina skulder.</div>';
+    if (btn) btn.style.display = 'none';
+    return;
+  }
+  if (btn) btn.style.display = 'block';
 
   list.innerHTML = '';
   ackDebts.forEach(function(d) {
     const isComplete = d.dueDate && d.status && d.creditor;
+    // Namn: fordringsägare om det finns, annars skuldtyp
+    const displayName = (d.creditor && d.creditor.trim())
+      ? d.creditor.trim()
+      : (d.name || 'Skuld');
+
     const card = document.createElement('div');
-    card.className = 'ack-debt-card';
+    card.className = 'ack-debt-card' + (isComplete ? ' ack-debt-complete' : '');
+    card.dataset.id = String(d.id);
+    card.dataset.expanded = isComplete ? 'false' : 'true'; // Öppna om ej komplett
+
     card.innerHTML =
-      '<div class="ack-debt-card-head">' +
-        '<div class="debt-color-dot" style="background:' + (d.color || 'var(--teal)') + '"></div>' +
-        '<div style="flex:1;">' +
-          '<div class="ack-debt-card-name">' + sanitize(d.name) + '</div>' +
+      '<div class="ack-debt-card-head" onclick="toggleAckCard(this.parentElement)" style="cursor:pointer;">' +
+        '<div class="debt-color-dot" style="background:' + (d.color || 'var(--teal)') + ';flex-shrink:0;"></div>' +
+        '<div style="flex:1;min-width:0;">' +
+          '<div class="ack-debt-card-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + sanitize(displayName) + '</div>' +
           '<span class="ack-status-indicator" style="font-size:10px;' + (isComplete ? 'color:var(--teal);' : 'color:var(--amber);') + '">' +
-            (isComplete ? '✓ Komplett' : 'Fyll i uppgifter nedan') +
+            (isComplete ? '✓ Komplett' : 'Fyll i uppgifter') +
           '</span>' +
         '</div>' +
-        '<div class="ack-debt-card-amount">' + fmt(d.amount) + ' kr</div>' +
-        '<button class="debt-remove" style="margin-left:8px;">×</button>' +
+        '<div class="ack-debt-card-amount" style="flex-shrink:0;">' + fmt(d.amount) + ' kr</div>' +
+        '<div style="flex-shrink:0;margin-left:8px;display:flex;gap:4px;align-items:center;">' +
+          '<span style="font-size:16px;color:var(--ink-muted);transform:rotate(' + (isComplete ? '0' : '180') + 'deg);display:inline-block;transition:transform 0.2s;" class="ack-chevron">›</span>' +
+          '<button class="debt-remove" onclick="event.stopPropagation();removeAckDebt(' + d.id + ')">×</button>' +
+        '</div>' +
       '</div>' +
-      '<div class="ack-debt-card-fields">' +
-        '<div>' +
+      '<div class="ack-debt-card-fields" style="display:' + (isComplete ? 'none' : 'grid') + ';">' +
+        '<div style="position:relative;">' +
           '<div class="ack-field-label">Vem är skulden hos?</div>' +
-          '<input class="ack-creditor-input" type="text" placeholder="t.ex. Intrum Justitia AB" value="' + sanitize(d.creditor || '') + '" style="font-size:13px;height:36px;">' +
+          '<input class="ack-creditor-input" type="text" placeholder="t.ex. Intrum Justitia AB" value="' + sanitize(d.creditor || '') + '" autocomplete="off" style="font-size:13px;height:36px;width:100%;">' +
+          '<div class="inline-creditor-dropdown" style="display:none;position:absolute;z-index:200;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);width:100%;max-height:180px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.08);"></div>' +
           '<div class="ack-field-hint">Längst upp på brevet</div>' +
         '</div>' +
         '<div>' +
@@ -2143,39 +2065,52 @@ function renderAckManualList() {
         '<div>' +
           '<div class="ack-field-label">Ursprungsbelopp (kr)<div style="font-size:10px;color:var(--ink-muted);">Kapitalbeloppet utan ränta</div></div>' +
           '<input class="ack-principal-input" type="number" placeholder="Kapitalbelopp" value="' + (d.principal && d.principal !== d.amount ? d.principal : '') + '" style="font-size:13px;height:36px;">' +
-          '<div class="ack-field-hint">Vad du ursprungligen var skyldig</div>' +
         '</div>' +
-      '</div>' +
-      '<div>' +
-        '<div class="ack-field-label" style="margin-top:10px;">Var befinner sig skulden?</div>' +
-        '<div class="ack-status-row">' +
-          '<button class="ack-status-pill' + (d.status === 'inkasso' ? ' active' : '') + '" data-status="inkasso">Hos inkassobolag</button>' +
-          '<button class="ack-status-pill' + (d.status === 'BF' ? ' active' : '') + '" data-status="BF">Hos Kronofogden</button>' +
+        '<div>' +
+          '<div class="ack-field-label">Var befinner sig skulden?</div>' +
+          '<div class="ack-status-row" style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;">' +
+            '<button class="ack-status-pill' + (d.status === 'inkasso' ? ' active' : '') + '" data-status="inkasso">Hos inkassobolag</button>' +
+            '<button class="ack-status-pill' + (d.status === 'BF' ? ' active' : '') + '" data-status="BF">Hos Kronofogden</button>' +
+          '</div>' +
         '</div>' +
       '</div>';
 
-    // Koppla event listeners
+    // Event listeners
     const removeBtn = card.querySelector('.debt-remove');
-    removeBtn.addEventListener('click', function() { removeAckDebt(d.id); });
+    if (removeBtn) removeBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      removeAckDebt(d.id);
+    });
 
     const creditorInput = card.querySelector('.ack-creditor-input');
-    creditorInput.addEventListener('input', function() {
-      d.creditor = this.value;
-      updateAckComplete(card, d);
-      saveState();
-    });
+    if (creditorInput) {
+      creditorInput.addEventListener('input', function() {
+        d.creditor = this.value;
+        updateAckComplete(card, d);
+        saveState();
+        filterInlineCreditor(this);
+      });
+      creditorInput.addEventListener('blur', function() { hideInlineCreditor(this); });
+      creditorInput.addEventListener('input-selected', function() {
+        d.creditor = this.value;
+        updateAckComplete(card, d);
+        saveState();
+      });
+    }
 
     const dateInput = card.querySelector('.ack-date-input');
-    dateInput.addEventListener('change', function() {
-      d.dueDate = this.value;
-      if (this.value) {
-        const parts = this.value.split('-');
-        const due = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
-        d.ageMonths = Math.max(0, Math.floor((new Date() - due) / (1000*60*60*24*30.44)));
-      }
-      updateAckComplete(card, d);
-      saveState();
-    });
+    if (dateInput) {
+      dateInput.addEventListener('change', function() {
+        d.dueDate = this.value;
+        if (this.value) {
+          const parts = this.value.split('-');
+          const due = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+          d.ageMonths = Math.max(0, Math.floor((new Date()-due)/(1000*60*60*24*30.44)));
+        }
+        updateAckComplete(card, d);
+        saveState();
+      });
+    }
 
     const principalInput = card.querySelector('.ack-principal-input');
     if (principalInput) {
@@ -2187,8 +2122,9 @@ function renderAckManualList() {
     }
 
     card.querySelectorAll('.ack-status-pill').forEach(function(pill) {
-      pill.addEventListener('click', function() {
-        card.querySelectorAll('.ack-status-pill').forEach(function(p) { p.classList.remove('active'); });
+      pill.addEventListener('click', function(e) {
+        e.stopPropagation();
+        card.querySelectorAll('.ack-status-pill').forEach(function(p){ p.classList.remove('active'); });
         this.classList.add('active');
         d.status = this.dataset.status;
         updateAckComplete(card, d);
@@ -2199,6 +2135,16 @@ function renderAckManualList() {
     list.appendChild(card);
   });
 }
+
+function toggleAckCard(card) {
+  const fields = card.querySelector('.ack-debt-card-fields');
+  const chevron = card.querySelector('.ack-chevron');
+  if (!fields) return;
+  const isOpen = fields.style.display !== 'none';
+  fields.style.display = isOpen ? 'none' : 'grid';
+  if (chevron) chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+}
+
 
 function pickPaymentAbility(el, ability) {
   document.querySelectorAll('.pa-card').forEach(function(c) { c.classList.remove('selected'); });
@@ -2247,8 +2193,20 @@ function updateAckComplete(card, d) {
   const indicator = card.querySelector('.ack-status-indicator');
   if (!indicator) return;
   const isComplete = d.dueDate && d.status && d.creditor;
-  indicator.textContent = isComplete ? '✓ Komplett' : 'Fyll i uppgifter nedan';
+  indicator.textContent = isComplete ? '✓ Komplett' : 'Fyll i uppgifter';
   indicator.style.color = isComplete ? 'var(--teal)' : 'var(--amber)';
+  // Uppdatera kortnamnet om creditor fyllts i
+  const nameEl = card.querySelector('.ack-debt-card-name');
+  if (nameEl && d.creditor && d.creditor.trim()) {
+    nameEl.textContent = d.creditor.trim();
+  }
+  // Om komplett - stäng kortet automatiskt
+  if (isComplete) {
+    const fields = card.querySelector('.ack-debt-card-fields');
+    const chevron = card.querySelector('.ack-chevron');
+    if (fields) fields.style.display = 'none';
+    if (chevron) chevron.style.transform = 'rotate(0deg)';
+  }
   saveState();
 }
 
@@ -3441,6 +3399,20 @@ function hideAddCreditor() {
     const d = document.getElementById('add-creditor-dropdown');
     if (d) d.style.display = 'none';
   }, 200);
+}
+
+function register() {
+  const n = document.getElementById('reg-name')?.value.trim() || '';
+  const e = document.getElementById('reg-email')?.value.trim() || '';
+  const errName = document.getElementById('err-name');
+  const errEmail = document.getElementById('err-email');
+  if (errName) errName.classList.remove('show');
+  if (errEmail) errEmail.classList.remove('show');
+  let ok = true;
+  if (!n) { if(errName) errName.classList.add('show'); ok=false; }
+  if (!e||!e.includes('@')) { if(errEmail) errEmail.classList.add('show'); ok=false; }
+  if (!ok) return;
+  user = {name:n, email:e}; saveState(); updateNav(); showWelcome(n);
 }
 </script>
 </body>
