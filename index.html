@@ -909,7 +909,6 @@
 <div class="page" id="page-debts">
   <div class="dash-nav">
     <button class="dash-tab active" id="tab-debts" onclick="switchTab('debts')">Mina skulder</button>
-    <button class="dash-tab" id="tab-strategy" onclick="switchTab('strategy')">Strategi</button>
     <button class="dash-tab" id="tab-ackord" onclick="switchTab('ackord')">Min plan</button>
   </div>
 
@@ -959,7 +958,12 @@
       <div class="total-row"><span class="total-lbl">Total månadsbetalning</span><span class="total-val" id="tot-pay">—</span></div>
       <div class="total-row"><span class="total-lbl" style="font-weight:500;">Skuldfri</span><span class="total-date" id="tot-date">—</span></div>
     </div>
-    <button class="btn btn-teal" id="to-strat-btn" style="display:none;" onclick="switchTab('strategy')">Se min strategi →</button>
+    <div id="freedom-date-card" style="display:none;background:var(--teal-light);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:12px;">
+      <div style="font-size:11px;color:var(--teal);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">Skuldfri</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:24px;color:var(--teal);letter-spacing:-0.5px;" id="freedom-date-val">—</div>
+      <div style="font-size:11px;color:var(--teal);opacity:0.8;margin-top:2px;" id="freedom-date-months"></div>
+    </div>
+    <button class="btn btn-teal" id="to-strat-btn" style="display:none;" onclick="switchTab('ackord')">Se min plan →</button>
 
   </div>
 
@@ -985,14 +989,13 @@
     </div>
     <div class="compare-box"><div class="compare-header">Skuldfrihetsdatum per strategi</div><div id="compare-rows"></div></div>
     <div class="order-section"><div class="order-label">Betala i den här ordningen</div><div class="order-list" id="order-list"></div></div>
-    <button class="btn btn-teal" onclick="switchTab('ackord')">Se min plan →</button>
-    <button class="btn btn-ghost" style="margin-top:10px;" onclick="openShareModal()">Dela min lösning →</button>
+
   </div>
 
   <div id="view-ackord" class="page-inner" style="display:none;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
       <div class="page-title" style="margin-bottom:0;">Min plan</div>
-      <button onclick="switchTab('strategy')" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--ink-muted);font-family:inherit;padding:0;">← Strategi</button>
+      <button onclick="switchTab('debts')" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--ink-muted);font-family:inherit;padding:0;">← Mina skulder</button>
     </div>
     <div class="page-sub">Lägg in dina skulder och vi tar fram en plan.</div>
 
@@ -1064,7 +1067,8 @@
               <div class="field-label">Ursprungsbelopp (kr)
                 <span style="font-size:10px;color:var(--ink-muted);font-weight:300;">Vad du ursprungligen var skyldig — kapitalbeloppet</span>
               </div>
-              <input type="number" id="ack-principal" placeholder="t.ex. 15 000" min="0">
+              <input type="number" id="ack-principal" placeholder="t.ex. 8 000" min="0">
+              <div style="font-size:10px;color:var(--ink-muted);margin-top:4px;line-height:1.5;">Titta efter "kapitalbelopp", "ursprunglig fordran" eller "lånebelopp" i brevet. Det är beloppet <em>innan</em> ränta och avgifter tillkom.</div>
             </div>
           </div>
 
@@ -1119,11 +1123,13 @@
             </div>
           </div>
 
-          <div class="field-group" style="margin-bottom:14px;">
+          <div class="field-group" style="margin-bottom:14px;position:relative;">
             <div class="field-label">Vem är skulden hos?
-              <span style="font-size:10px;color:var(--ink-muted);font-weight:300;">Fordringsägarens namn — står längst upp på brevet</span>
+              <span style="font-size:10px;color:var(--ink-muted);font-weight:300;">Står längst upp på brevet</span>
             </div>
-            <input type="text" id="ack-creditor" placeholder="t.ex. Intrum Justitia AB">
+            <input type="text" id="ack-creditor" placeholder="Börja skriva t.ex. Intrum..." 
+              autocomplete="off" oninput="filterCreditors(this.value)" onblur="hideCreditors()">
+            <div id="creditor-dropdown" style="display:none;position:absolute;z-index:100;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);width:100%;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.08);"></div>
           </div>
           <button class="btn btn-dark" style="height:44px;font-size:14px;" onclick="addAckDebt()">+ Lägg till skuld</button>
         </div>
@@ -1249,19 +1255,18 @@
 
       <!-- PREMIUM-GATE -->
       <div class="premium-gate" id="prem-gate" style="display:none;">
-        <div class="pg-title">Välj din nivå</div>
-        <div class="pg-subtitle">Gratis ger dig skuldfrihetsdatum och total skuldbild. Välj hur långt du vill gå.</div>
+        <div class="pg-title">Ta nästa steg</div>
+        <div class="pg-subtitle">Du ser din plan gratis — välj hur mycket hjälp du vill ha att genomföra den.</div>
         <div class="pricing-grid">
           <div class="pricing-card" onclick="unlockLevel(1)">
-            <div class="pricing-tier">Åtgärdsförslag</div>
+            <div class="pricing-tier">Grundplan</div>
             <div class="pricing-price">49 <span>kr</span></div>
             <div class="pricing-sub">engångskostnad</div>
-            <div class="pricing-tagline">Du ser vad vi rekommenderar för varje skuld — men inte hur du gör det.</div>
+            <div class="pricing-tagline">Steg-för-steg vad du ska göra för varje skuld.</div>
             <div class="pricing-divider"></div>
-            <div class="pricing-feature">Rekommenderad åtgärd per skuld</div>
-            <div class="pricing-feature">Prioriteringsordning</div>
-            <div class="pricing-feature">Potentiell besparing i kronor</div>
-            <div class="pricing-feature dim">Steg-för-steg-guide</div>
+            <div class="pricing-feature">Steg-för-steg-guide per skuld</div>
+            <div class="pricing-feature">Exakt vem du ska kontakta</div>
+            <div class="pricing-feature">Vad du ska be om</div>
             <div class="pricing-feature dim">Samtalsmanus</div>
             <div class="pricing-feature dim">Brevmallar</div>
             <button class="pricing-btn" onclick="unlockLevel(1)">Välj →</button>
@@ -1271,13 +1276,12 @@
             <div class="pricing-tier">Handlingsplan</div>
             <div class="pricing-price">99 <span>kr</span></div>
             <div class="pricing-sub">engångskostnad</div>
-            <div class="pricing-tagline">Du vet vad du ska göra och hur du ska göra det — steg för steg.</div>
+            <div class="pricing-tagline">Guide + exakt vad du ska säga när du ringer.</div>
             <div class="pricing-divider"></div>
-            <div class="pricing-feature">Rekommenderad åtgärd per skuld</div>
-            <div class="pricing-feature">Prioriteringsordning</div>
-            <div class="pricing-feature">Potentiell besparing i kronor</div>
-            <div class="pricing-feature">Steg-för-steg-guide per skuld</div>
-            <div class="pricing-feature">Samtalsmanus för förhandling</div>
+            <div class="pricing-feature">Allt i Grundplan</div>
+            <div class="pricing-feature">Samtalsmanus per skuld</div>
+            <div class="pricing-feature">Vad du ska säga — ord för ord</div>
+            <div class="pricing-feature">Hur du svarar på motargument</div>
             <div class="pricing-feature dim">Brevmallar</div>
             <button class="pricing-btn pricing-btn-teal" onclick="unlockLevel(2)">Välj →</button>
           </div>
@@ -1285,14 +1289,13 @@
             <div class="pricing-tier">Komplett</div>
             <div class="pricing-price">199 <span>kr</span></div>
             <div class="pricing-sub">engångskostnad</div>
-            <div class="pricing-tagline">Allt du behöver — inklusive brev du kan skicka direkt.</div>
+            <div class="pricing-tagline">Komplett förhandlingspaket — från första samtal till avslut.</div>
             <div class="pricing-divider"></div>
-            <div class="pricing-feature">Rekommenderad åtgärd per skuld</div>
-            <div class="pricing-feature">Prioriteringsordning</div>
-            <div class="pricing-feature">Potentiell besparing i kronor</div>
-            <div class="pricing-feature">Steg-för-steg-guide per skuld</div>
-            <div class="pricing-feature">Samtalsmanus för förhandling</div>
-            <div class="pricing-feature">Brevmallar redo att skicka</div>
+            <div class="pricing-feature">Allt i Handlingsplan</div>
+            <div class="pricing-feature">Brevmall per skuld — förifylld</div>
+            <div class="pricing-feature">Uppföljningsmall om de inte svarar</div>
+            <div class="pricing-feature">Mall för skriftlig bekräftelse</div>
+            <div class="pricing-feature">Checklista — steg för steg till avslut</div>
             <button class="pricing-btn pricing-btn-dark" onclick="unlockLevel(3)">Välj →</button>
           </div>
         </div>
@@ -1594,6 +1597,11 @@ function showPage(p) {
 }
 // Sätt has-value och kör kalkylator automatiskt vid laddning
 document.addEventListener('DOMContentLoaded', function() {
+  // Sätt max på datum-fält till idag
+  const today = new Date().toISOString().split('T')[0];
+  document.querySelectorAll('input[type="date"]').forEach(function(el) {
+    el.setAttribute('max', today);
+  });
   ['debt','rate','payment'].forEach(function(id) {
     var el = document.getElementById(id);
     if (el && el.value) el.classList.add('has-value');
@@ -1885,6 +1893,18 @@ function renderAll() {
   const maxM=Math.max(...debts.map(d=>{const r=freeDate(d.amount,d.rate,d.payment);return r?r.months:600;}));
   document.getElementById('total-box').style.display='block';
   document.getElementById('to-strat-btn').style.display='block';
+  // Visa skuldfrihetsdatum
+  const fdCard = document.getElementById('freedom-date-card');
+  const fdVal = document.getElementById('freedom-date-val');
+  const fdMonths = document.getElementById('freedom-date-months');
+  if (fdCard && fdVal) {
+    const maxMonths = Math.max(...debts.map(d => { const r=freeDate(d.amount,d.rate,d.payment); return r?r.months:0; }));
+    if (maxMonths > 0) {
+      fdCard.style.display = 'block';
+      fdVal.textContent = toDate(maxMonths);
+      if (fdMonths) fdMonths.textContent = maxMonths + ' månader kvar';
+    }
+  }
 
   document.getElementById('tot-debt').textContent=fmt(totDebt)+' kr';
   document.getElementById('tot-pay').textContent=fmt(totPay)+' kr/mån';
@@ -1894,11 +1914,12 @@ function renderAll() {
 
 function switchTab(name) {
   ['debts','strategy','ackord'].forEach(t=>{
-    document.getElementById('tab-'+t).classList.toggle('active',t===name);
-    document.getElementById('view-'+t).style.display=t===name?'block':'none';
+    const tab = document.getElementById('tab-'+t);
+    const view = document.getElementById('view-'+t);
+    if (tab) tab.classList.toggle('active',t===name);
+    if (view) view.style.display=t===name?'block':'none';
   });
   if (name==='debts') renderAll();
-  if (name==='strategy') renderStrategy();
   if (name==='ackord') {
     // Återställ alltid till rätt startläge
     const stepUpload = document.getElementById('ack-step-upload');
@@ -2053,10 +2074,9 @@ function ackordChance(ageMonths, status) {
 }
 
 function offerPct(ageMonths, status) {
-  // Ju äldre och ju längre i kedjan, desto lägre erbjudande
-  let pct = ageMonths >= 24 ? 0.30 : ageMonths >= 12 ? 0.40 : ageMonths >= 6 ? 0.50 : 0.60;
-  if (status === 'BF') pct = Math.max(pct - 0.05, 0.25);
-  if (status === 'UTM') pct = Math.max(pct - 0.08, 0.22);
+  // Gammal funktion - ersatt av calcOfferAmount
+  let pct = ageMonths >= 60 ? 0.45 : ageMonths >= 36 ? 0.55 : ageMonths >= 18 ? 0.65 : 0.80;
+  if (status === 'UTM') pct = Math.max(pct - 0.05, 0.40);
   return pct;
 }
 
@@ -2064,23 +2084,35 @@ function addAckDebt() {
   const amt = parseFloat(document.getElementById('ack-amt').value);
   const dateStr = document.getElementById('ack-date').value;
   const creditorVal = document.getElementById('ack-creditor')?.value.trim() || '';
-  if (!amt || amt <= 0) { showNotice('Ange ett skuldbelopp.'); return; }
+  const principalAmt2 = parseFloat(document.getElementById('ack-principal')?.value) || 0;
+  if (!amt || amt <= 0) { showNotice('Ange ett totalt saldo.'); return; }
+
+  if (!principalAmt2 || principalAmt2 <= 0) { showNotice('Ange ursprungsbeloppet (kapitalet utan ränta).'); return; }
+  if (principalAmt2 > amt) { showNotice('Ursprungsbeloppet kan inte vara högre än totalsaldot.'); return; }
+  if (principalAmt2 < 500) { showNotice('Ursprungsbeloppet måste vara minst 500 kr.'); return; }
   if (!creditorVal) { showNotice('Ange vem skulden är hos — finns längst upp på brevet.'); return; }
   if (!dateStr) { showNotice('Ange datum för inkasso.'); return; }
+  const dateObj = new Date(dateStr);
+  const today = new Date();
+  if (dateObj > today) { showNotice('Inkassodatum kan inte vara i framtiden.'); return; }
+  if (dateObj < new Date('2000-01-01')) { showNotice('Ange ett rimligt datum (efter år 2000).'); return; }
   if (!ackSelStatus) { showNotice('Välj var skulden befinner sig.'); return; }
   const ageMonths = ageFromDate(dateStr);
   const name = statusLabel(ackSelStatus.status);
   const creditor = document.getElementById('ack-creditor')?.value.trim() || '';
   ackDebts.push({
     id: Date.now(),
-    name: creditor ? creditor : name,
+    name: creditorVal || name,
     amount: amt,
+    principal: principalAmt2 || amt,
     rate: ackSelStatus.rate,
     ageMonths,
     status: ackSelStatus.status,
     dueDate: dateStr,
     source: 'manual',
-    creditor
+    creditor: creditorVal,
+    isPublic: debtChar === 'public',
+    kfmDecision: kfmDecision || 'unknown'
   });
   if (document.getElementById('ack-creditor')) document.getElementById('ack-creditor').value = '';
   document.getElementById('ack-amt').value = '';
@@ -2183,7 +2215,7 @@ function renderAckManualList() {
           '<div class="ack-field-hint">Finns i inkassobrevet</div>' +
         '</div>' +
         '<div>' +
-          '<div class="ack-field-label">Ursprungsbelopp (kr) <span style="font-size:10px;color:var(--ink-muted);">valfritt</span></div>' +
+          '<div class="ack-field-label">Ursprungsbelopp (kr)<div style="font-size:10px;color:var(--ink-muted);">Kapitalbeloppet utan ränta</div></div>' +
           '<input class="ack-principal-input" type="number" placeholder="Kapitalbelopp" value="' + (d.principal && d.principal !== d.amount ? d.principal : '') + '" style="font-size:13px;height:36px;">' +
           '<div class="ack-field-hint">Vad du ursprungligen var skyldig</div>' +
         '</div>' +
@@ -2292,6 +2324,7 @@ function updateAckComplete(card, d) {
   const isComplete = d.dueDate && d.status && d.creditor;
   indicator.textContent = isComplete ? '✓ Komplett' : 'Fyll i uppgifter nedan';
   indicator.style.color = isComplete ? 'var(--teal)' : 'var(--amber)';
+  saveState();
 }
 
 
@@ -2300,6 +2333,46 @@ function updateAckComplete(card, d) {
 // ============================================================
 let debtChar = null;      // 'private' eller 'public'
 let kfmDecision = null;   // 'yes', 'no', 'unknown'
+
+const CREDITORS = ['Intrum Justitia AB', 'Svea Inkasso AB', 'Lowell Sverige AB', 'Sergel Kredittjänster AB', 'Lindorff AB', 'Aktiv Inkasso AB', 'Collectia AB', 'Inkassogram AB', 'Marginalen Bank', 'Hoist Finance AB', 'Portfolio Recovery Associates', 'Alektum Group AB', 'Gothia Financial Group', 'Coop Bank', 'Klarna Bank AB', 'Resurs Bank AB', 'Collector Bank AB', 'Nordea Bank AB', 'Swedbank AB', 'Handelsbanken', 'SEB AB', 'Danske Bank', 'ICA Banken AB', 'Santander Consumer Bank', 'BMW Financial Services', 'Volkswagen Financial Services', 'Tele2 Sverige AB', 'Telia Sverige AB', 'Three AB', 'Telenor Sverige AB', 'Vattenfall AB', 'E.ON Sverige AB', 'Kronofogdemyndigheten', 'Skatteverket', 'CSN'];
+
+function filterCreditors(val) {
+  const dropdown = document.getElementById('creditor-dropdown');
+  if (!val || val.length < 2) { dropdown.style.display='none'; return; }
+  const matches = CREDITORS.filter(function(c){ return c.toLowerCase().includes(val.toLowerCase()); }).slice(0, 8);
+  if (matches.length === 0) {
+    dropdown.innerHTML = '';
+    const div = document.createElement('div');
+    div.style.cssText = 'padding:10px 14px;font-size:13px;color:var(--ink-muted);';
+    div.textContent = '"' + val + '" — hittades inte i listan. Du kan ändå använda detta namn.';
+    dropdown.appendChild(div);
+    dropdown.style.display = 'block';
+    return;
+  }
+  dropdown.innerHTML = '';
+  matches.forEach(function(c) {
+    const div = document.createElement('div');
+    div.style.cssText = 'padding:10px 14px;font-size:13px;cursor:pointer;border-bottom:0.5px solid var(--border);';
+    const safe = val.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    div.innerHTML = c.replace(new RegExp(safe,'gi'),'<strong>$&</strong>');
+    div.addEventListener('mousedown', function(){ selectCreditor(c); });
+    dropdown.appendChild(div);
+  });
+  dropdown.style.display = 'block';
+}
+
+function selectCreditor(name) {
+  const input = document.getElementById('ack-creditor');
+  if (input) { input.value = name; input.classList.add('has-value'); }
+  document.getElementById('creditor-dropdown').style.display = 'none';
+}
+
+function hideCreditors() {
+  setTimeout(function() {
+    const d = document.getElementById('creditor-dropdown');
+    if (d) d.style.display = 'none';
+  }, 200);
+}
 
 function pickDebtChar(el, char) {
   document.querySelectorAll('#char-private, #char-public').forEach(function(b){ b.classList.remove('active'); });
@@ -2336,29 +2409,31 @@ function ackordChanceAdvanced(debt) {
   const age = debt.ageMonths || 0;
   const status = debt.status || 'inkasso';
   const isPublic = debt.isPublic || false;
-  const kfmYes = debt.kfmDecision === 'yes';
   const principal = debt.principal || debt.amount;
   const interestRatio = principal < debt.amount ? (debt.amount - principal) / debt.amount : 0;
 
   // Myndigheter — ackord omöjligt
   if (isPublic) return { chance: 0, label: 'Ej möjligt', recommendation: 'public' };
 
-  // KFM-beslut + ung skuld — ackord osannolikt
-  if (kfmYes && age < 24) return { chance: 15, label: 'Osannolikt', recommendation: 'installment' };
+  // BF: inkasso väntar på utslag — ingen deal möjlig
+  if (status === 'BF') return { chance: 0, label: 'Ej möjligt nu', recommendation: 'wait', interestRatio };
 
-  // Beräkna baschans
-  let base = age >= 36 ? 85 : age >= 24 ? 70 : age >= 12 ? 50 : age >= 6 ? 30 : 15;
+  // UTM: utslag finns — kan förhandla ränta men inte kapital
+  if (status === 'UTM') {
+    const base = age >= 36 ? 55 : age >= 18 ? 40 : 25;
+    return { chance: base, label: 'Begränsad — ca ' + base + '%', recommendation: 'installment', interestRatio,
+      note: 'Utslag finns — förhandla ränta och avgifter, kapital rörs ej.' };
+  }
 
-  // Hög ränteandel ökar chansen
-  if (interestRatio > 0.5) base = Math.min(base + 15, 90);
-  else if (interestRatio > 0.3) base = Math.min(base + 8, 90);
+  // Inkasso — beräkna chans baserat på ålder och ränteandel
+  let base = age >= 60 ? 80 : age >= 36 ? 65 : age >= 18 ? 45 : 20;
 
-  // Status-bonus
-  if (status === 'BF') base = Math.min(base + 5, 90);
-  if (status === 'UTM') base = Math.min(base + 10, 90);
+  // Hög ränteandel ökar chansen — mer att förhandla om
+  if (interestRatio > 0.5) base = Math.min(base + 15, 85);
+  else if (interestRatio > 0.3) base = Math.min(base + 8, 80);
 
-  const label = base >= 70 ? 'Hög — ca ' + base + '%' : base >= 40 ? 'Medel — ca ' + base + '%' : 'Låg — ca ' + base + '%';
-  const recommendation = base >= 40 ? 'lump' : 'installment';
+  const label = base >= 65 ? 'Hög — ca ' + base + '%' : base >= 40 ? 'Medel — ca ' + base + '%' : 'Låg — ca ' + base + '%';
+  const recommendation = age >= 36 ? 'lump' : age >= 18 ? 'lump_or_installment' : 'installment';
 
   return { chance: base, label, recommendation, interestRatio };
 }
@@ -2366,21 +2441,72 @@ function ackordChanceAdvanced(debt) {
 // Beräkna rätt erbjudandebelopp baserat på kapital
 function calcOfferAmount(debt) {
   const principal = debt.principal || debt.amount;
+  const interest = Math.max(0, debt.amount - principal); // upplupen ränta
   const age = debt.ageMonths || 0;
   const status = debt.status || 'inkasso';
-  const oPct = offerPct(age, status);
+  const interestRatio = debt.amount > 0 ? interest / debt.amount : 0;
 
-  // Erbjudandet baseras på kapitalet, inte totalsaldot
-  // Hög ränteandel = vi kan erbjuda ännu lägre pga inkassot betalat lite
-  const interestRatio = principal < debt.amount ? (debt.amount - principal) / debt.amount : 0;
-  const adjustedPct = interestRatio > 0.4 ? Math.max(oPct - 0.05, 0.20) : oPct;
+  // BF: inkasso väntar på utslag — ingen deal möjlig
+  if (status === 'BF') {
+    return {
+      offerOnPrincipal: debt.amount, // full skuld
+      savingFromTotal: 0,
+      interestRatio,
+      principal,
+      interest,
+      possible: false,
+      note: 'BF pågår — inkassobolaget väntar på KFM-utslag. Ingen uppgörelse möjlig nu.'
+    };
+  }
+
+  let offer, saving, note;
+
+  if (age < 18) {
+    // Under 18 mån: förhandla bara räntan — 20-25% avskrivning av upplupen ränta
+    const interestDiscount = Math.round(interest * 0.225); // 22.5% av räntan
+    offer = debt.amount - interestDiscount;
+    saving = interestDiscount;
+    note = 'Skulden är relativt ny. Vi kan förhandla ned upplupen ränta med ca 20–25% — kapitalet berörs inte.';
+
+  } else if (age < 36) {
+    // 18–36 mån: 40–60% av räntan kan skrivas ned
+    const interestDiscount = Math.round(interest * 0.50); // 50% av räntan
+    offer = Math.max(principal + Math.round(interest * 0.50), Math.round(debt.amount * 0.65));
+    saving = debt.amount - offer;
+    note = 'Skulden börjar bli förhandlingsbar. Vi kan förhandla ned ca hälften av upplupen ränta.';
+
+  } else if (age < 60) {
+    // 36–60 mån: börja tala om totalskulden — 35–45% avskrivning
+    // Men aldrig under kapitalet — inkasso betalade minst 20% av kapitalet
+    const minAcceptable = Math.round(principal * 1.20); // kapital + 20% marginal
+    offer = Math.max(Math.round(debt.amount * 0.58), minAcceptable);
+    saving = debt.amount - offer;
+    note = 'Bra förhandlingsläge. Erbjud ' + Math.round((1 - offer/debt.amount)*100) + '% avskrivning av totalsaldot.';
+
+  } else {
+    // 60+ mån: starkt läge — 45–60% avskrivning av totalsaldot
+    const minAcceptable = Math.round(principal * 1.15); // kapital + 15% marginal
+    offer = Math.max(Math.round(debt.amount * 0.43), minAcceptable);
+    saving = debt.amount - offer;
+    note = 'Starkt förhandlingsläge. Skulden är gammal och inkassot vill avsluta.';
+  }
+
+  // UTM: utslag finns — kan förhandla men kapital rörs ej
+  if (status === 'UTM') {
+    const minUTM = Math.round(principal * 1.10);
+    offer = Math.max(offer, minUTM);
+    saving = debt.amount - offer;
+    note += ' OBS: KFM-utslag finns — kapitalet kan inte skrivas ned, men ränta och avgifter kan förhandlas.';
+  }
 
   return {
-    offerOnPrincipal: Math.round(principal * adjustedPct),
-    offerOnTotal: Math.round(debt.amount * adjustedPct),
-    savingFromTotal: debt.amount - Math.round(principal * adjustedPct),
+    offerOnPrincipal: Math.max(offer, 0),
+    savingFromTotal: Math.max(saving, 0),
     interestRatio,
-    principal
+    principal,
+    interest,
+    possible: true,
+    note
   };
 }
 
@@ -2405,15 +2531,24 @@ function buildHolisticPlan(debts, lumpSum, monthlyBudget) {
   const plan = sorted.map((d,i) => {
     const age = d.ageMonths || 0;
     const rate = d.rate || 0;
-    const isPublic = (d.name||'').toLowerCase().includes('csn');
+    const isPublic = d.isPublic || (d.name||'').toLowerCase().includes('csn');
     const isYoungLow = age < 6 && rate < 10;
+    const kfmYes = d.kfmDecision === 'yes';
+    const qualCheck = ackordChanceAdvanced(d);
+    const offerCalc = calcOfferAmount(d);
+    const offerAmt = offerCalc.offerOnPrincipal;
+    const interestRatio = offerCalc.interestRatio;
+    const saving = offerCalc.savingFromTotal;
+    const offerNote = offerCalc.note || '';
     const oPct = offerPct(age, d.status || 'inkasso');
-    const offerAmt = Math.round(d.amount * oPct);
-    const saving = d.amount - offerAmt;
     let action, badge, desc, payNow = 0, monthlyPay = 0, months = 0, actualCost = d.amount;
 
-    const qualCheck = ackordChanceAdvanced(d);
-    if (isPublic || qualCheck.recommendation === 'public') {
+    // BF: ingen deal möjlig — väntar på utslag
+    if (status === 'BF') {
+      action = 'Bestrida eller avvakta';
+      badge = 'plan-action-red';
+      desc = 'Inkassobolaget väntar på KFM-utslag — ingen ackordsuppgörelse möjlig nu. Du har två alternativ: (1) Bestrida föreläggandet hos KFM för att stoppa processen och få mer tid, eller (2) Avvakta utslaget och förhandla om avbetalningsplan efteråt. Kontakta Kronofogden på 0771-73 73 00.';
+    } else if (isPublic || qualCheck.recommendation === 'public') {
       action = 'Betala i sin helhet';
       badge = 'plan-action-gray';
       desc = 'Offentlig fordran — ackord är inte möjligt. Kontakta dem för betalningsplan eller anstånd.';
@@ -2430,8 +2565,8 @@ function buildHolisticPlan(debts, lumpSum, monthlyBudget) {
       action = 'Ackord mot direktbetalning';
       badge = 'plan-action-teal';
       const savingPct = Math.round((1 - offerAmt/d.amount)*100);
-      desc = 'Erbjud ' + fmt(offerAmt) + ' kr som slutbetalning (baserat på ursprungsbeloppet) — ca ' + savingPct + '% avskrivning av totalsaldot.' +
-        (interestRatio > 0.3 ? ' Hög ränteandel (' + Math.round(interestRatio*100) + '%) stärker ditt förhandlingsläge.' : '');
+      desc = offerNote || ('Erbjud ' + fmt(offerAmt) + ' kr som slutbetalning — ca ' + savingPct + '% avskrivning av totalsaldot.' +
+        (interestRatio > 0.3 ? ' Hög ränteandel (' + Math.round(interestRatio*100) + '%) stärker ditt förhandlingsläge.' : ''));
       payNow = offerAmt; remainingLump -= offerAmt;
       totalSaving += saving; actualCost = offerAmt; months = 0;
     } else if (remainingLump >= d.amount * 0.85) {
@@ -2651,6 +2786,10 @@ function buildLetter(debt, action, offerAmt) {
   if (action === 'Ackord mot direktbetalning' || action === 'Direktbetalning — förhandla bort ränta') {
     return dateStr+'\n\nTill: '+creditor+'\nAngående: Förfrågan om ackordsuppgörelse\n\nHej,\n\nJag kontaktar er angående en skuld på '+amount+' kr som jag önskar reglera slutgiltigt.\n\nJag har möjlighet att betala '+offerAmt+' kr som engångsbetalning och föreslår att detta accepteras som slutlig reglering inklusive upplupen ränta och samtliga avgifter.\n\nErbjudandet gäller till och med '+deadlineStr+'. Jag förutsätter skriftlig bekräftelse på att skulden skrivs av i sin helhet innan betalning genomförs.\n\nMed vänliga hälsningar,\n'+userName;
   }
+  // BF: ge råd istället för förhandlingsbrev
+  if (action === 'Invänta utslag — ingen deal nu') {
+    return dateStr+'\n\nTill: '+creditor+'\nAngående: Bestriding av betalningsföreläggande\n\nHej,\n\nJag har mottagit ansökan om betalningsföreläggande och önskar härmed bestrida kravet.\n\nJag bestrider beloppet och ber om att ärendet överlämnas till tingsrätten för prövning.\n\nAlternativt är jag öppen för en avbetalningsplan på rimliga villkor utan att ett formellt utslag behöver fattas.\n\nMed vänliga hälsningar,\n'+userName;
+  }
   if (action === 'Ackord med avbetalningsplan') {
     return dateStr+'\n\nTill: '+creditor+'\nAngående: Förfrågan om avbetalningsplan med fryst ränta\n\nHej,\n\nJag önskar upprätta en avbetalningsplan för en skuld på '+amount+' kr. Jag föreslår '+offerAmt+' kr per månad utan ytterligare ränta eller avgifter.\n\nErbjudandet gäller till och med '+deadlineStr+'. Jag ber er bekräfta skriftligt att räntan fryses och att skulden skrivs av när planen är fullföljd.\n\nMed vänliga hälsningar,\n'+userName;
   }
@@ -2709,9 +2848,44 @@ function renderDynamicGuide() {
         '<div class="template-label">Brevmall — '+sanitize(creditor)+'</div>' +
         '<div class="template-text" style="white-space:pre-wrap;">'+sanitize(letter)+'</div>' +
         '<button class="copy-btn" onclick="copyLetter('+i+')">Kopiera brev →</button>' +
+      (premiumOn >= 3 ? '<button class="copy-btn" style="margin-top:6px;background:var(--surface);color:var(--ink);" onclick="copyFollowUp('+i+')">Kopiera uppföljning →</button>' : '') +
       '</div>' +
     '</div>';
   }).join('');
+}
+
+function buildFollowUpLetter(debt, action, offerAmt) {
+  const creditor = debt.creditor || debt.name || '[Fordringsägarens namn]';
+  const today = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const dateStr = today.getFullYear()+'-'+pad(today.getMonth()+1)+'-'+pad(today.getDate());
+  const userName = (window._currentUser && window._currentUser.name) ? window._currentUser.name : '[Ditt namn]';
+  const isAckord = action.indexOf('Ackord') >= 0 || action.indexOf('Direktbetalning') >= 0;
+
+  if (isAckord) {
+    return dateStr+'\n\nTill: '+creditor+'\nAngående: Uppföljning — ackordsförfrågan\n\nHej,\n\nJag skickade tidigare en förfrågan om ackordsuppgörelse för en skuld på '+fmt(debt.amount)+' kr. Mitt erbjudande på '+offerAmt+' kr som engångsbetalning kvarstår.\n\nJag ber om svar senast inom 7 dagar, annars återkommer jag via Kronofogdens skuldsaneringsprocess.\n\nMed vänliga hälsningar,\n'+userName;
+  }
+  return dateStr+'\n\nTill: '+creditor+'\nAngående: Uppföljning — avbetalningsplan\n\nHej,\n\nJag skickade tidigare en förfrågan om avbetalningsplan för en skuld på '+fmt(debt.amount)+' kr. Jag önskar komma överens snarast och ber om svar inom 7 dagar.\n\nMed vänliga hälsningar,\n'+userName;
+}
+
+function buildConfirmationLetter(debt, action, offerAmt) {
+  const creditor = debt.creditor || debt.name || '[Fordringsägarens namn]';
+  const today = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const dateStr = today.getFullYear()+'-'+pad(today.getMonth()+1)+'-'+pad(today.getDate());
+  const userName = (window._currentUser && window._currentUser.name) ? window._currentUser.name : '[Ditt namn]';
+  return dateStr+'\n\nTill: '+creditor+'\nAngående: Begäran om skriftlig bekräftelse\n\nHej,\n\nEfter vårt samtal [datum] är vi överens om följande:\n\n- Skuld: '+fmt(debt.amount)+' kr\n- Uppgörelse: [Beskriv vad ni kom överens om]\n- Betalning sker senast: [datum]\n- Skulden skrivs av i sin helhet efter betalning\n\nJag ber er bekräfta denna överenskommelse skriftligen via e-post innan jag genomför betalningen.\n\nMed vänliga hälsningar,\n'+userName;
+}
+
+function copyFollowUp(i) {
+  const plan = window._currentPlan;
+  if (!plan || !plan[i]) return;
+  const p = plan[i];
+  const offerAmtRaw = p.payNow > 0 ? fmt(p.payNow) : (p.monthlyPay > 0 ? fmt(p.monthlyPay) : '—');
+  const text = buildFollowUpLetter(p.debt, p.action, offerAmtRaw);
+  navigator.clipboard.writeText(text)
+    .then(() => showNotice('Uppföljningsbrev kopierat!', 'success'))
+    .catch(() => showNotice('Markera texten och kopiera manuellt.'));
 }
 
 function copyLetter(i) {
