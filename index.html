@@ -908,8 +908,43 @@
 <!-- DASHBOARD -->
 <div class="page" id="page-debts">
   <div class="dash-nav">
-    <button class="dash-tab active" id="tab-debts" onclick="switchTab('debts')">Mina skulder</button>
+    <button class="dash-tab active" id="tab-budget" onclick="switchTab('budget')">Budget</button>
+    <button class="dash-tab" id="tab-debts" onclick="switchTab('debts')">Mina skulder</button>
     <button class="dash-tab" id="tab-ackord" onclick="switchTab('ackord')">Min plan</button>
+  </div>
+
+
+  <div id="view-budget" class="page-inner" style="display:none;">
+    <div class="page-title">Din budget</div>
+    <div class="page-sub">Fyll i inkomst och utgifter — vi räknar ut vad du kan lägga på dina skulder.</div>
+    <div class="add-form" style="margin-top:16px;">
+      <div class="add-form-title">Inkomst per månad</div>
+      <div class="form-row" style="grid-template-columns:1fr 1fr;">
+        <div class="field-group" style="margin:0;"><div class="field-label">Nettolön (kr)</div><input type="number" id="db-income" placeholder="t.ex. 25 000" min="0" oninput="updateDashBudget()"></div>
+        <div class="field-group" style="margin:0;"><div class="field-label">Bidrag / ersättning (kr)</div><input type="number" id="db-benefit" placeholder="t.ex. 0" min="0" oninput="updateDashBudget()"></div>
+      </div>
+    </div>
+    <div class="add-form" style="margin-top:12px;">
+      <div class="add-form-title">Fasta utgifter per månad</div>
+      <div class="form-row" style="grid-template-columns:1fr 1fr;">
+        <div class="field-group" style="margin:0;"><div class="field-label">Boende</div><input type="number" id="db-housing" placeholder="t.ex. 8 000" min="0" oninput="updateDashBudget()"></div>
+        <div class="field-group" style="margin:0;"><div class="field-label">Mat</div><input type="number" id="db-food" placeholder="t.ex. 3 500" min="0" oninput="updateDashBudget()"></div>
+        <div class="field-group" style="margin:0;"><div class="field-label">Transport</div><input type="number" id="db-transport" placeholder="t.ex. 2 500" min="0" oninput="updateDashBudget()"></div>
+        <div class="field-group" style="margin:0;"><div class="field-label">Telefon & internet</div><input type="number" id="db-phone" placeholder="t.ex. 500" min="0" oninput="updateDashBudget()"></div>
+        <div class="field-group" style="margin:0;"><div class="field-label">Försäkringar</div><input type="number" id="db-insurance" placeholder="t.ex. 600" min="0" oninput="updateDashBudget()"></div>
+        <div class="field-group" style="margin:0;"><div class="field-label">Övrigt</div><input type="number" id="db-other" placeholder="t.ex. 500" min="0" oninput="updateDashBudget()"></div>
+      </div>
+    </div>
+    <div id="db-result" style="display:none;margin-top:16px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
+        <div style="background:var(--surface);border-radius:var(--radius-sm);padding:14px;text-align:center;"><div style="font-size:18px;font-weight:700;" id="db-total-income">—</div><div style="font-size:10px;color:var(--ink-muted);text-transform:uppercase;margin-top:3px;">Inkomst</div></div>
+        <div style="background:var(--surface);border-radius:var(--radius-sm);padding:14px;text-align:center;"><div style="font-size:18px;font-weight:700;" id="db-total-exp">—</div><div style="font-size:10px;color:var(--ink-muted);text-transform:uppercase;margin-top:3px;">Utgifter</div></div>
+        <div style="background:var(--teal-light);border-radius:var(--radius-sm);padding:14px;text-align:center;"><div style="font-size:18px;font-weight:700;color:var(--teal);" id="db-left-val">—</div><div style="font-size:10px;color:var(--teal);text-transform:uppercase;margin-top:3px;">Kvar</div></div>
+      </div>
+      <div id="db-budget-msg" style="font-size:13px;color:var(--ink-muted);margin-bottom:12px;padding:12px 14px;background:var(--surface);border-radius:var(--radius-sm);line-height:1.6;"></div>
+      <div id="db-deficit-msg" style="display:none;background:var(--amber-light);border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;color:var(--amber-dark);margin-bottom:12px;"></div>
+      <button class="btn btn-teal" id="db-next-btn" style="display:none;" onclick="switchTab('debts')">Lägg till dina skulder →</button>
+    </div>
   </div>
 
   <div id="view-debts" class="page-inner">
@@ -951,6 +986,11 @@
         </div>
       </div>
       <button class="btn btn-dark" style="height:44px;font-size:14px;" id="add-debt-btn" onclick="addDebt()">+ Lägg till skuld</button>
+      <div style="text-align:center;margin-top:8px;">
+        <span style="font-size:12px;color:var(--ink-muted);">Har du en UC-rapport? </span>
+        <label for="uc-file-debts" style="font-size:12px;color:var(--teal);cursor:pointer;text-decoration:underline;">Ladda upp och importera →</label>
+        <input type="file" id="uc-file-debts" accept=".pdf" style="display:none;" onchange="handleFileSelectToDebts(event)">
+      </div>
       <div id="add-success" style="display:none;font-size:12px;color:var(--teal);font-weight:500;margin-top:8px;text-align:center;animation:fadeUp 0.3s ease both;">✓ Skuld tillagd!</div>
     </div>
     <div class="total-summary" id="total-box" style="display:none;">
@@ -1004,14 +1044,7 @@
     <div id="ack-step-upload">
 
       <!-- METODVAL -->
-      <div id="ack-method-choice">
-        <div id="ack-import-banner" style="display:none;background:var(--teal-light);border:1px solid rgba(13,122,95,0.2);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:16px;display:none;">
-          <div style="font-size:13px;font-weight:500;color:var(--teal);margin-bottom:4px;">Du har skulder sparade</div>
-          <div style="font-size:12px;color:var(--teal);opacity:0.85;margin-bottom:10px;" id="ack-import-desc"></div>
-          <button class="btn btn-teal" style="height:38px;font-size:13px;" onclick="importDebtFromDashboard()">Importera mina skulder direkt →</button>
-        </div>
-
-        <div class="method-grid" style="grid-template-columns:repeat(3,1fr);">
+<div class="method-grid" style="grid-template-columns:repeat(3,1fr);">
           <div class="method-card" onclick="showAckordMethod('manual')">
             <div class="method-icon" style="background:var(--teal-light);">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0d7a5f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -1040,7 +1073,7 @@
       </div>
 
       <!-- MANUELL INMATNING -->
-      <div id="ack-manual-form" style="display:none;">
+      <div id="ack-manual-form">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
           <button onclick="showAckordMethod(null)" style="background:none;border:none;cursor:pointer;color:var(--ink-muted);font-size:13px;font-family:inherit;padding:0;">← Tillbaka</button>
           <div style="display:flex;align-items:center;gap:6px;">
@@ -1117,7 +1150,6 @@
                 <div class="status-card-desc">Du har fått brev från Kronofogden — men ingen lön dras ännu</div>
               </div>
               <div class="status-card" data-status="UTM" data-rate="8" onclick="pickAckStatus(this);showKfmQuestion('UTM')">
-                <div class="status-card-title">Lön eller konto dras</div>
                 <div class="status-card-desc">Pengar dras automatiskt från din lön eller ditt konto</div>
               </div>
             </div>
@@ -1177,11 +1209,7 @@
       </div>
 
       <!-- UC UPLOAD -->
-      <div id="ack-uc-form" style="display:none;">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
-          <button onclick="showAckordMethod(null)" style="background:none;border:none;cursor:pointer;color:var(--ink-muted);font-size:13px;font-family:inherit;padding:0;">← Tillbaka</button>
-        </div>
-        <div class="ackord-intro">
+<div class="ackord-intro">
           <div class="ackord-intro-title">Varför UC-rapporten?</div>
           <div class="ackord-intro-text">Med din UC-rapport ser vi skuldens exakta ålder, ursprungsbelopp, upplupen ränta och nuvarande innehavare — och ger ett mer träffsäkert ackordsförslag.</div>
         </div>
@@ -1913,7 +1941,7 @@ function renderAll() {
 }
 
 function switchTab(name) {
-  ['debts','strategy','ackord'].forEach(t=>{
+  ['budget','debts','strategy','ackord'].forEach(t=>{
     const tab = document.getElementById('tab-'+t);
     const view = document.getElementById('view-'+t);
     if (tab) tab.classList.toggle('active',t===name);
@@ -2041,10 +2069,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function showAckordMethod(method) {
-  document.getElementById('ack-method-choice').style.display = method ? 'none' : 'block';
-  document.getElementById('ack-manual-form').style.display = method === 'manual' ? 'block' : 'none';
-  document.getElementById('ack-uc-form').style.display = method === 'uc' ? 'block' : 'none';
-  if (!method) { ackDebts = []; ackSelStatus = null; renderAckManualList(); }
+  const manual = document.getElementById('ack-manual-form');
+  if (manual) manual.style.display = 'block';
 }
 
 function pickAckStatus(el) {
@@ -2206,10 +2232,9 @@ function renderAckManualList() {
       '<div class="ack-debt-card-fields">' +
         '<div>' +
           '<div class="ack-field-label">Vem är skulden hos?</div>' +
-          '<div style="position:relative;">' +
-          '<input class="ack-creditor-input" type="text" placeholder="Börja skriva t.ex. Intrum..." value="' + sanitize(d.creditor || '') + '" autocomplete="off" style="font-size:13px;height:36px;width:100%;">' +
-          '<div class="inline-creditor-dropdown" style="display:none;position:absolute;z-index:200;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);width:100%;max-height:180px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.08);"></div>' +
-          '</div>' +
+          '<input class="ack-creditor-input" type="text" placeholder="t.ex. Intrum Justitia AB" value="' + sanitize(d.creditor || '') + '" style="font-size:13px;height:36px;">' +
+          '<div class="ack-field-hint">Längst upp på brevet</div>' +
+        '</div>' +
         '<div>' +
           '<div class="ack-field-label">Datum skulden fick inkasso</div>' +
           '<input class="ack-date-input" type="date" value="' + (d.dueDate || '') + '" max="' + new Date().toISOString().split('T')[0] + '" style="font-size:13px;height:36px;">' +
@@ -2226,7 +2251,6 @@ function renderAckManualList() {
         '<div class="ack-status-row">' +
           '<button class="ack-status-pill' + (d.status === 'inkasso' ? ' active' : '') + '" data-status="inkasso">Hos inkassobolag</button>' +
           '<button class="ack-status-pill' + (d.status === 'BF' ? ' active' : '') + '" data-status="BF">Hos Kronofogden</button>' +
-          '<button class="ack-status-pill' + (d.status === 'UTM' ? ' active' : '') + '" data-status="UTM">Lön eller konto dras</button>' +
         '</div>' +
       '</div>';
 
@@ -2336,46 +2360,6 @@ let debtChar = null;      // 'private' eller 'public'
 let kfmDecision = null;   // 'yes', 'no', 'unknown'
 
 const CREDITORS = ['Intrum Justitia AB', 'Svea Inkasso AB', 'Lowell Sverige AB', 'Sergel Kredittjänster AB', 'Lindorff AB', 'Aktiv Inkasso AB', 'Collectia AB', 'Inkassogram AB', 'Marginalen Bank', 'Hoist Finance AB', 'Portfolio Recovery Associates', 'Alektum Group AB', 'Gothia Financial Group', 'Coop Bank', 'Klarna Bank AB', 'Resurs Bank AB', 'Collector Bank AB', 'Nordea Bank AB', 'Swedbank AB', 'Handelsbanken', 'SEB AB', 'Danske Bank', 'ICA Banken AB', 'Santander Consumer Bank', 'BMW Financial Services', 'Volkswagen Financial Services', 'Tele2 Sverige AB', 'Telia Sverige AB', 'Three AB', 'Telenor Sverige AB', 'Vattenfall AB', 'E.ON Sverige AB', 'Kronofogdemyndigheten', 'Skatteverket', 'CSN'];
-
-
-function filterInlineCreditor(input) {
-  const val = input.value;
-  const dropdown = input.parentElement.querySelector('.inline-creditor-dropdown');
-  if (!dropdown) return;
-  if (!val || val.length < 2) { dropdown.style.display='none'; return; }
-  const matches = CREDITORS.filter(function(c){ return c.toLowerCase().includes(val.toLowerCase()); }).slice(0, 8);
-  dropdown.innerHTML = '';
-  if (matches.length === 0) {
-    const div = document.createElement('div');
-    div.style.cssText = 'padding:10px 14px;font-size:13px;color:var(--ink-muted);';
-    div.textContent = '"' + val + '" — hittades inte i listan. Du kan ändå använda detta namn.';
-    dropdown.appendChild(div);
-    dropdown.style.display = 'block';
-    return;
-  }
-  matches.forEach(function(c) {
-    const div = document.createElement('div');
-    div.style.cssText = 'padding:10px 14px;font-size:13px;cursor:pointer;border-bottom:0.5px solid var(--border);';
-    const safe = val.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-    div.innerHTML = c.replace(new RegExp(safe,'gi'),'<strong>$&</strong>');
-    div.addEventListener('mousedown', function(){
-      input.value = c;
-      input.classList.add('has-value');
-      dropdown.style.display = 'none';
-      // Trigga spara
-      input.dispatchEvent(new Event('input-selected'));
-    });
-    dropdown.appendChild(div);
-  });
-  dropdown.style.display = 'block';
-}
-
-function hideInlineCreditor(input) {
-  setTimeout(function() {
-    const dropdown = input.parentElement.querySelector('.inline-creditor-dropdown');
-    if (dropdown) dropdown.style.display = 'none';
-  }, 200);
-}
 
 function filterCreditors(val) {
   const dropdown = document.getElementById('creditor-dropdown');
@@ -3230,6 +3214,293 @@ function sendBudgetToCalc() {
   }, 300);
 }
 
+
+var dashBudgetLeft = 0;
+var dashBudgetMonthly = 0;
+
+function updateDashBudget() {
+  const income = parseFloat(document.getElementById('db-income')?.value) || 0;
+  const benefit = parseFloat(document.getElementById('db-benefit')?.value) || 0;
+  const totalIncome = income + benefit;
+  const keys = ['housing','food','transport','phone','insurance','other'];
+  let totalExp = 0;
+  keys.forEach(function(k) { totalExp += parseFloat(document.getElementById('db-'+k)?.value) || 0; });
+  const left = totalIncome - totalExp;
+  dashBudgetLeft = Math.max(0, left);
+  dashBudgetMonthly = Math.round(dashBudgetLeft * 0.60);
+  if (totalIncome <= 0) return;
+  const resultEl = document.getElementById('db-result');
+  if (resultEl) resultEl.style.display = 'block';
+  const incEl = document.getElementById('db-total-income');
+  const expEl = document.getElementById('db-total-exp');
+  const leftEl = document.getElementById('db-left-val');
+  if (incEl) incEl.textContent = fmt(totalIncome) + ' kr';
+  if (expEl) expEl.textContent = fmt(totalExp) + ' kr';
+  if (leftEl) { leftEl.textContent = fmt(Math.abs(left)) + ' kr'; leftEl.style.color = left >= 0 ? 'var(--teal)' : '#c94a2e'; }
+  const msgEl = document.getElementById('db-budget-msg');
+  const nextBtn = document.getElementById('db-next-btn');
+  const deficitEl = document.getElementById('db-deficit-msg');
+  if (left > 0) {
+    if (msgEl) msgEl.innerHTML = 'Du har <strong>' + fmt(left) + ' kr</strong> kvar. Vi reserverar 40% (' + fmt(Math.round(left*0.40)) + ' kr) för oväntade utgifter — <strong>' + fmt(dashBudgetMonthly) + ' kr/mån</strong> går till skulder.';
+    if (nextBtn) { nextBtn.style.display = 'block'; nextBtn.textContent = 'Lägg till dina skulder →'; }
+    if (deficitEl) deficitEl.style.display = 'none';
+  } else {
+    if (deficitEl) { deficitEl.style.display = 'block'; deficitEl.innerHTML = 'Utgifterna överstiger inkomsten med <strong>' + fmt(Math.abs(left)) + ' kr/mån</strong>. Gå vidare ändå.'; }
+    if (nextBtn) { nextBtn.style.display = 'block'; nextBtn.textContent = 'Gå vidare ändå →'; }
+  }
+  saveState();
+}
+
+
+function filterCreditors(val) {
+  const dropdown = document.getElementById('creditor-dropdown');
+  if (!dropdown) return;
+  if (!val || val.length < 2) { dropdown.style.display='none'; return; }
+  const matches = CREDITORS.filter(function(c){ return c.toLowerCase().includes(val.toLowerCase()); }).slice(0,8);
+  dropdown.innerHTML = '';
+  if (matches.length === 0) {
+    const div = document.createElement('div');
+    div.style.cssText = 'padding:10px 14px;font-size:13px;color:var(--ink-muted);';
+    div.textContent = '"' + val + '" — hittades inte. Du kan ändå använda detta namn.';
+    dropdown.appendChild(div); dropdown.style.display = 'block'; return;
+  }
+  matches.forEach(function(c) {
+    const div = document.createElement('div');
+    div.style.cssText = 'padding:10px 14px;font-size:13px;cursor:pointer;border-bottom:0.5px solid var(--border);';
+    div.textContent = c;
+    div.addEventListener('mousedown', function(){ selectCreditor(c); });
+    dropdown.appendChild(div);
+  });
+  dropdown.style.display = 'block';
+}
+function selectCreditor(name) {
+  const el = document.getElementById('ack-creditor');
+  if (el) { el.value = name; el.classList.add('has-value'); }
+  const d = document.getElementById('creditor-dropdown');
+  if (d) d.style.display = 'none';
+}
+function hideCreditors() {
+  setTimeout(function(){ const d=document.getElementById('creditor-dropdown'); if(d) d.style.display='none'; },200);
+}
+function filterInlineCreditor(input) {
+  const val = input.value;
+  const dropdown = input.parentElement && input.parentElement.querySelector('.inline-creditor-dropdown');
+  if (!dropdown) return;
+  if (!val || val.length < 2) { dropdown.style.display='none'; return; }
+  const matches = CREDITORS.filter(function(c){ return c.toLowerCase().includes(val.toLowerCase()); }).slice(0,8);
+  dropdown.innerHTML = '';
+  matches.forEach(function(c) {
+    const div = document.createElement('div');
+    div.style.cssText = 'padding:10px 14px;font-size:13px;cursor:pointer;border-bottom:0.5px solid var(--border);';
+    div.textContent = c;
+    div.addEventListener('mousedown', function(){
+      input.value = c; input.classList.add('has-value');
+      dropdown.style.display = 'none';
+      input.dispatchEvent(new Event('input-selected'));
+    });
+    dropdown.appendChild(div);
+  });
+  if (matches.length === 0) {
+    const div = document.createElement('div');
+    div.style.cssText = 'padding:10px 14px;font-size:13px;color:var(--ink-muted);';
+    div.textContent = '"' + val + '" — hittades inte. Skriv fritt.';
+    dropdown.appendChild(div);
+  }
+  dropdown.style.display = 'block';
+}
+function hideInlineCreditor(input) {
+  setTimeout(function(){
+    if (input.parentElement) { const d=input.parentElement.querySelector('.inline-creditor-dropdown'); if(d) d.style.display='none'; }
+  },200);
+}
+
+function unlockLevel(level) {
+  premiumOn = level; saveState();
+  const gate = document.getElementById('prem-gate');
+  if (gate) gate.style.display = 'none';
+  if (level >= 2) renderDynamicGuide();
+  if (level >= 3) showPdfButton();
+  if (level === 1) showNotice('Åtgärdsförslag upplåst!', 'success');
+}
+function showPdfButton() {
+  const guide = document.getElementById('ackord-guide');
+  if (!guide) return;
+  const old = document.getElementById('pdf-download-btn');
+  if (old) old.remove();
+  const btn = document.createElement('button');
+  btn.id = 'pdf-download-btn'; btn.className = 'btn btn-dark';
+  btn.style.cssText = 'margin-top:16px;width:100%;';
+  btn.innerHTML = '&#11015; Ladda ner handlingsplan som PDF';
+  btn.onclick = generatePdf; guide.appendChild(btn);
+}
+function generatePdf() {
+  const plan = window._currentPlan;
+  if (!plan || plan.length === 0) { showNotice('Ingen plan att ladda ner.'); return; }
+  const today = new Date().toLocaleDateString('sv-SE');
+  const totalDebt = plan.reduce(function(s,p){ return s+p.debt.amount; },0);
+  const totalSaving = plan.reduce(function(s,p){ return s+(p.saving||0); },0);
+  let html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Min plan</title><style>body{font-family:Arial,sans-serif;padding:32px;max-width:700px;margin:0 auto;}h1{font-size:24px;}.sub{color:#666;font-size:13px;margin-bottom:24px;}.stat-row{display:flex;gap:16px;margin-bottom:24px;}.stat{background:#f0faf7;border-radius:8px;padding:12px 16px;flex:1;}.stat-val{font-size:20px;font-weight:700;color:#0d7a5f;}.debt{border:1px solid #e5e5e5;border-radius:8px;padding:16px;margin-bottom:12px;}.head{display:flex;justify-content:space-between;}.badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;background:#e6f7f3;color:#0d7a5f;margin:8px 0;}.desc{font-size:13px;color:#444;line-height:1.5;}.letter{background:#f8f8f6;border:1px solid #ddd;border-radius:6px;padding:14px;margin-top:12px;font-size:12px;white-space:pre-wrap;}</style></head><body>';
+  html += '<h1>Min skuldplan</h1><p class="sub">Skapad ' + today + '</p>';
+  html += '<div class="stat-row"><div class="stat"><div class="stat-val">' + fmt(totalDebt) + ' kr</div><div>Total skuld</div></div>';
+  if (totalSaving > 0) html += '<div class="stat"><div class="stat-val">' + fmt(Math.round(totalSaving)) + ' kr</div><div>Potentiell besparing</div></div>';
+  html += '</div>';
+  plan.forEach(function(p,i) {
+    const creditor = (p.debt.creditor && p.debt.creditor.trim()) ? p.debt.creditor.trim() : p.debt.name;
+    html += '<div class="debt"><div class="head"><strong>' + (i+1) + '. ' + creditor + '</strong><strong>' + fmt(p.debt.amount) + ' kr</strong></div>';
+    html += '<div class="badge">' + p.action + '</div><div class="desc">' + p.desc + '</div>';
+    if (premiumOn >= 3 && p.action !== 'Betala i sin helhet' && p.action !== 'Bestrida eller avvakta') {
+      const offerAmt = p.payNow > 0 ? fmt(p.payNow) : fmt(p.monthlyPay);
+      const letter = buildLetter(p.debt, p.action, offerAmt);
+      html += '<div class="letter"><div style="font-size:10px;color:#999;margin-bottom:6px;">BREVMALL</div>' + letter.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>';
+    }
+    html += '</div>';
+  });
+  html += '</body></html>';
+  const w = window.open('','_blank');
+  if (!w) { showNotice('Tillåt popup-fönster.'); return; }
+  w.document.write(html); w.document.close(); w.focus();
+  setTimeout(function(){ w.print(); }, 600);
+}
+
+function openShareModal() {
+  const dateEl = document.getElementById('tot-date');
+  const date = dateEl ? dateEl.textContent : '—';
+  const sdEl = document.getElementById('share-date');
+  if (sdEl) sdEl.textContent = date;
+  const bg = document.getElementById('share-modal-bg');
+  if (bg) bg.classList.add('open');
+}
+function closeShareModal(e) {
+  const bg = document.getElementById('share-modal-bg');
+  if (bg && e.target === bg) bg.classList.remove('open');
+}
+function copyShareText() {
+  const date = document.getElementById('share-date')?.textContent || '—';
+  const text = 'Jag är skuldfri ' + date + '. Räkna ut ditt datum på skuldportalen.se';
+  navigator.clipboard.writeText(text).then(function(){ showNotice('Kopierat!','success'); });
+}
+
+function toggleFaq(btn) {
+  const item = btn.closest('.faq-item');
+  if (!item) return;
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(function(i){ i.classList.remove('open'); });
+  if (!isOpen) item.classList.add('open');
+}
+function filterFaq(cat, btn) {
+  document.querySelectorAll('.faq-cat').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  document.querySelectorAll('.faq-item').forEach(function(item){
+    if (cat==='all'||item.dataset.cat===cat) item.classList.remove('hidden');
+    else { item.classList.add('hidden'); item.classList.remove('open'); }
+  });
+}
+
+function autoImportToAckord() {
+  if (debts.length > 0 && ackDebts.length === 0) {
+    importDebtFromDashboard();
+  } else if (debts.length > 0) {
+    ackDebts = ackDebts.map(function(a){
+      const d = debts.find(function(d){ return String(d.id)===String(a.id); });
+      if (!d) return a;
+      return Object.assign({},a,{name:d.name,amount:d.amount,rate:d.rate,principal:d.principal||a.principal});
+    });
+    debts.forEach(function(d){
+      if (!ackDebts.find(function(a){ return String(a.id)===String(d.id); }))
+        ackDebts.push({id:d.id,name:d.name,amount:d.amount,principal:d.principal||d.amount,rate:d.rate,payment:d.payment,ageMonths:0,status:'',dueDate:'',creditor:'',source:'import'});
+    });
+    ackDebts = ackDebts.filter(function(a){ return debts.find(function(d){ return String(d.id)===String(a.id); }); });
+    saveState(); renderAckManualList();
+  }
+}
+
+function submitManualAckord() {
+  if (ackDebts.length === 0) { showNotice('Lägg till minst en skuld.'); return; }
+  const rawMonthly = parseFloat(document.getElementById('ack-monthly-budget')?.value) ||
+                     parseFloat(document.getElementById('payment')?.value) || 0;
+  const monthlyBudget = dashBudgetMonthly > 0 ? dashBudgetMonthly : Math.round(rawMonthly * 0.60);
+  const lumpAmt = parseFloat(document.getElementById('ack-lump-amount')?.value) || 0;
+  document.getElementById('ack-step-upload').style.display = 'none';
+  document.getElementById('ack-step-results').style.display = 'block';
+  showAckordResultsWithBudget(ackDebts, null, lumpAmt, monthlyBudget);
+}
+
+function resetAckord() {
+  document.getElementById('ack-step-upload').style.display = 'block';
+  document.getElementById('ack-step-parsing').style.display = 'none';
+  document.getElementById('ack-step-results').style.display = 'none';
+  showAckordMethod('manual');
+}
+
+function showAckordResultsWithBudget(parsedDebts, filename, lumpAmt, monthlyBudget) {
+  window._currentUser = user;
+  renderHolisticPlan(parsedDebts, lumpAmt||0, monthlyBudget||0);
+  const prem = document.getElementById('prem-gate');
+  premiumOn = false; saveState();
+  if (prem) prem.style.display = 'block';
+  const guide = document.getElementById('ackord-guide');
+  if (guide) guide.style.display = 'none';
+  setTimeout(function(){ addEditButtonsToPlanItems(); }, 100);
+}
+
+function addEditButtonsToPlanItems() {
+  document.querySelectorAll('.plan-item').forEach(function(item){
+    if (item.querySelector('.plan-edit-btn')) return;
+    const amtDiv = item.querySelector('.plan-item-amount');
+    if (!amtDiv) return;
+    const nameEl = item.querySelector('.plan-item-name');
+    if (!nameEl) return;
+    const creditorName = nameEl.textContent.trim();
+    const plan = window._currentPlan || [];
+    const planItem = plan.find(function(p){ return ((p.debt.creditor||p.debt.name)||'').trim()===creditorName; });
+    const debtId = planItem ? planItem.debt.id : null;
+    const btn = document.createElement('button');
+    btn.className = 'plan-edit-btn';
+    btn.textContent = 'Ändra';
+    btn.style.cssText = 'background:none;border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-size:11px;color:var(--ink-muted);cursor:pointer;font-family:inherit;margin-left:8px;';
+    btn.onclick = function(){ if (debtId) editPlanDebt(debtId); };
+    amtDiv.parentNode.insertBefore(btn, amtDiv.nextSibling);
+  });
+}
+
+function editPlanDebt(id) {
+  document.getElementById('ack-step-results').style.display = 'none';
+  document.getElementById('ack-step-upload').style.display = 'block';
+  renderAckManualList();
+  setTimeout(function(){
+    document.querySelectorAll('.ack-debt-card').forEach(function(card){
+      if (String(card.dataset.id) === String(id)) {
+        card.style.border = '2px solid var(--teal)';
+        card.scrollIntoView({behavior:'smooth',block:'center'});
+        setTimeout(function(){ card.style.border=''; }, 2000);
+      }
+    });
+  }, 100);
+}
+
+function handleFileSelectToDebts(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  showNotice('Läser UC-rapport...');
+  loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js', function() {
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      const data = new Uint8Array(ev.target.result);
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      pdfjsLib.getDocument({data}).promise.then(function(pdf) {
+        const pages = Array.from({length:pdf.numPages},function(_,i){return i+1;});
+        Promise.all(pages.map(function(n){ return pdf.getPage(n).then(function(p){ return p.getTextContent().then(function(tc){ return tc.items.map(function(i){return i.str;}).join(' '); }); }); }))
+        .then(function(texts){
+          const parsed = parseUCText(texts.join(' '));
+          if (parsed.length === 0) { showNotice('Kunde inte läsa skulder. Fyll i manuellt.'); return; }
+          parsed.forEach(function(d){ debts.push({id:d.id,name:d.name,amount:d.amount,principal:d.principal||d.amount,rate:d.rate||20,payment:Math.round(d.amount*0.02),color:COLORS[debts.length%COLORS.length],age:d.ageMonths||12}); });
+          saveState(); renderAll(); showNotice(parsed.length+' skulder importerade!','success');
+        });
+      }).catch(function(){ showNotice('Kunde inte läsa PDF.'); });
+    };
+    reader.readAsArrayBuffer(file);
+  });
+}
 </script>
 </body>
 </html>
