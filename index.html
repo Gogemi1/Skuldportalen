@@ -2206,9 +2206,10 @@ function renderAckManualList() {
       '<div class="ack-debt-card-fields">' +
         '<div>' +
           '<div class="ack-field-label">Vem är skulden hos?</div>' +
-          '<input class="ack-creditor-input" type="text" placeholder="t.ex. Intrum Justitia AB" value="' + sanitize(d.creditor || '') + '" style="font-size:13px;height:36px;">' +
-          '<div class="ack-field-hint">Längst upp på brevet</div>' +
-        '</div>' +
+          '<div style="position:relative;">' +
+          '<input class="ack-creditor-input" type="text" placeholder="Börja skriva t.ex. Intrum..." value="' + sanitize(d.creditor || '') + '" autocomplete="off" style="font-size:13px;height:36px;width:100%;">' +
+          '<div class="inline-creditor-dropdown" style="display:none;position:absolute;z-index:200;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);width:100%;max-height:180px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.08);"></div>' +
+          '</div>' +
         '<div>' +
           '<div class="ack-field-label">Datum skulden fick inkasso</div>' +
           '<input class="ack-date-input" type="date" value="' + (d.dueDate || '') + '" max="' + new Date().toISOString().split('T')[0] + '" style="font-size:13px;height:36px;">' +
@@ -2335,6 +2336,46 @@ let debtChar = null;      // 'private' eller 'public'
 let kfmDecision = null;   // 'yes', 'no', 'unknown'
 
 const CREDITORS = ['Intrum Justitia AB', 'Svea Inkasso AB', 'Lowell Sverige AB', 'Sergel Kredittjänster AB', 'Lindorff AB', 'Aktiv Inkasso AB', 'Collectia AB', 'Inkassogram AB', 'Marginalen Bank', 'Hoist Finance AB', 'Portfolio Recovery Associates', 'Alektum Group AB', 'Gothia Financial Group', 'Coop Bank', 'Klarna Bank AB', 'Resurs Bank AB', 'Collector Bank AB', 'Nordea Bank AB', 'Swedbank AB', 'Handelsbanken', 'SEB AB', 'Danske Bank', 'ICA Banken AB', 'Santander Consumer Bank', 'BMW Financial Services', 'Volkswagen Financial Services', 'Tele2 Sverige AB', 'Telia Sverige AB', 'Three AB', 'Telenor Sverige AB', 'Vattenfall AB', 'E.ON Sverige AB', 'Kronofogdemyndigheten', 'Skatteverket', 'CSN'];
+
+
+function filterInlineCreditor(input) {
+  const val = input.value;
+  const dropdown = input.parentElement.querySelector('.inline-creditor-dropdown');
+  if (!dropdown) return;
+  if (!val || val.length < 2) { dropdown.style.display='none'; return; }
+  const matches = CREDITORS.filter(function(c){ return c.toLowerCase().includes(val.toLowerCase()); }).slice(0, 8);
+  dropdown.innerHTML = '';
+  if (matches.length === 0) {
+    const div = document.createElement('div');
+    div.style.cssText = 'padding:10px 14px;font-size:13px;color:var(--ink-muted);';
+    div.textContent = '"' + val + '" — hittades inte i listan. Du kan ändå använda detta namn.';
+    dropdown.appendChild(div);
+    dropdown.style.display = 'block';
+    return;
+  }
+  matches.forEach(function(c) {
+    const div = document.createElement('div');
+    div.style.cssText = 'padding:10px 14px;font-size:13px;cursor:pointer;border-bottom:0.5px solid var(--border);';
+    const safe = val.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    div.innerHTML = c.replace(new RegExp(safe,'gi'),'<strong>$&</strong>');
+    div.addEventListener('mousedown', function(){
+      input.value = c;
+      input.classList.add('has-value');
+      dropdown.style.display = 'none';
+      // Trigga spara
+      input.dispatchEvent(new Event('input-selected'));
+    });
+    dropdown.appendChild(div);
+  });
+  dropdown.style.display = 'block';
+}
+
+function hideInlineCreditor(input) {
+  setTimeout(function() {
+    const dropdown = input.parentElement.querySelector('.inline-creditor-dropdown');
+    if (dropdown) dropdown.style.display = 'none';
+  }, 200);
+}
 
 function filterCreditors(val) {
   const dropdown = document.getElementById('creditor-dropdown');
@@ -2731,6 +2772,7 @@ function showAckordResults(parsedDebts, filename) {
 
 function submitManualAckord() {
   if (ackDebts.length === 0) { showNotice('Lägg till minst en skuld.'); return; }
+  // Hämta värden INNAN formuläret döljs
   const lumpAmt = parseFloat(document.getElementById('ack-lump-amount')?.value) || 0;
   const monthlyBudget = parseFloat(document.getElementById('ack-monthly-budget')?.value) ||
                         parseFloat(document.getElementById('payment')?.value) || 0;
@@ -3051,6 +3093,143 @@ function generateDemoData() {
     {id:Date.now()+2, name:'Inkasso 2', amount:12000, rate:15, ageMonths:18, status:'BF', dueDate:'', creditor:'', source:'uc'}
   ], 'UC-rapport (exempeldata)');
 }
+// ============================================================
+// BUDGETSIMULATOR
+// ============================================================
+
+const BUDGET_AVG = { housing:8000, food:3500, transport:2500, phone:500, insurance:600, clothing:800, leisure:1200, other:500 };
+const BUDGET_LABELS = { housing:'Boende', food:'Mat', transport:'Transport', phone:'Telefon & internet', insurance:'Försäkringar', clothing:'Kläder & hygien', leisure:'Nöjen & fritid', other:'Övrigt' };
+const BUDGET_COLORS = { housing:'#0d7a5f', food:'#1aab84', transport:'#c97a1a', phone:'#4a3ab7', insurance:'#c94a2e', clothing:'#378add', leisure:'#639922', other:'#888780' };
+
+function updateBudget() {
+  const income = parseFloat(document.getElementById('b-income')?.value) || 0;
+  const benefit = parseFloat(document.getElementById('b-benefit')?.value) || 0;
+  const totalIncome = income + benefit;
+
+  const keys = ['housing','food','transport','phone','insurance','clothing','leisure','other'];
+  let totalExp = 0;
+  keys.forEach(function(k) {
+    const val = parseFloat(document.getElementById('b-'+k)?.value) || 0;
+    totalExp += val;
+  });
+
+  const left = totalIncome - totalExp;
+
+  const incomeEl = document.getElementById('br-income');
+  const expEl = document.getElementById('br-exp');
+  const leftEl = document.getElementById('br-left');
+  if (incomeEl) incomeEl.textContent = fmt(totalIncome) + ' kr';
+  if (expEl) expEl.textContent = fmt(totalExp) + ' kr';
+  if (leftEl) {
+    leftEl.textContent = fmt(Math.abs(left)) + ' kr';
+    leftEl.style.color = left >= 0 ? 'var(--teal)' : 'var(--red)';
+    leftEl.parentElement.querySelector('.br-left-label').textContent = left >= 0 ? 'Kvar efter utgifter' : 'Underskott';
+  }
+
+  // Visa spara-sektionen
+  const brSave = document.getElementById('br-save');
+  if (brSave) brSave.style.display = left > 0 ? 'block' : 'none';
+  updateSaveSection(Math.max(0, left));
+
+  // Visa CTA
+  const brCta = document.getElementById('br-cta');
+  if (brCta) brCta.style.display = left > 0 ? 'block' : 'none';
+
+  // Rendera stapeldiagram
+  const maxVal = Math.max(...keys.map(k => parseFloat(document.getElementById('b-'+k)?.value)||0), ...Object.values(BUDGET_AVG));
+  const barsEl = document.getElementById('br-bars');
+  if (barsEl) {
+    barsEl.innerHTML = keys.map(function(k) {
+      const val = parseFloat(document.getElementById('b-'+k)?.value) || 0;
+      const avg = BUDGET_AVG[k];
+      if (val === 0 && avg === 0) return '';
+      const valPct = Math.min(100, Math.round(val/maxVal*100));
+      const avgPct = Math.min(100, Math.round(avg/maxVal*100));
+      const over = val > avg * 1.2;
+      const color = over ? 'var(--amber)' : BUDGET_COLORS[k];
+      return '<div class="budget-bar-row">' +
+        '<div class="budget-bar-label">' +
+          '<span>' + BUDGET_LABELS[k] + '</span>' +
+          '<span style="color:' + (over?'var(--amber)':'var(--ink-muted)') + '">' + (val>0?fmt(val)+' kr':'ej angivet') + (over?' ↑':'') + '</span>' +
+        '</div>' +
+        '<div class="budget-bar-track">' +
+          '<div class="budget-bar-fill" style="width:'+valPct+'%;background:'+color+';"></div>' +
+          '<div class="budget-bar-avg-line" style="left:'+avgPct+'%;"></div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+}
+
+function updateSaveSection(left) {
+  const el = document.getElementById('br-save');
+  const sub = document.getElementById('br-save-sub');
+  const optionsEl = document.getElementById('br-save-options');
+  if (!el || left <= 0) { if(el) el.style.display='none'; return; }
+  el.style.display = 'block';
+  const min = Math.max(100, Math.round(left*0.05/100)*100);
+  const mid = Math.max(200, Math.round(left*0.10/100)*100);
+  const rec = Math.max(500, Math.round(left*0.20/100)*100);
+  const max2 = Math.max(1000, Math.round(left*0.30/100)*100);
+  if (sub) sub.textContent = 'Baserat på att du har ' + fmt(left) + ' kr kvar — välj din sparnivå.';
+  if (!optionsEl) return;
+  const options = [
+    {key:'min', label:'Miniminivå', desc:'5% av överskottet', amount:min},
+    {key:'mid', label:'Lagom', desc:'10% av överskottet', amount:mid},
+    {key:'rec', label:'Rekommenderat ★', desc:'20% av överskottet', amount:rec},
+    {key:'max', label:'Ambitiöst', desc:'30% av överskottet', amount:max2},
+  ];
+  optionsEl.innerHTML = options.map(function(o) {
+    return '<div class="save-option" onclick="selectSaveOption(this,' + o.amount + ',' + left + ')" data-key="' + o.key + '">' +
+      '<div class="save-option-left"><div class="save-option-dot"></div>' +
+        '<div><div class="save-option-label">' + o.label + '</div>' +
+        '<div class="save-option-desc">' + o.desc + ' · ' + fmt(o.amount*12) + ' kr/år</div></div>' +
+      '</div>' +
+      '<div class="save-option-amount">' + fmt(o.amount) + ' kr/mån</div>' +
+    '</div>';
+  }).join('');
+  const recEl = optionsEl.querySelector('[data-key="rec"]');
+  if (recEl) selectSaveOption(recEl, rec, left);
+}
+
+function selectSaveOption(el, amount, left) {
+  document.querySelectorAll('.save-option').forEach(function(o){ o.classList.remove('selected'); });
+  el.classList.add('selected');
+  const debtPayment = Math.max(0, left - amount);
+  const resultEl = document.getElementById('br-save-result');
+  if (!resultEl) return;
+  resultEl.className = 'save-result visible';
+  resultEl.innerHTML = '<strong>' + fmt(amount) + ' kr/mån till sparande</strong> — ' + fmt(amount*12) + ' kr på ett år. ' +
+    'Kvar till skuldbetalningar: <strong>' + fmt(debtPayment) + ' kr/mån</strong>.' +
+    (debtPayment > 0 ? ' <span style="cursor:pointer;text-decoration:underline;" onclick="applyDebtPayment(' + debtPayment + ')">Använd i kalkylatorn →</span>' : '');
+}
+
+function applyDebtPayment(amount) {
+  showPage('home');
+  setTimeout(function() {
+    var payInput = document.getElementById('payment');
+    if (payInput) {
+      payInput.value = Math.round(amount);
+      payInput.classList.add('has-value');
+      payInput.scrollIntoView({behavior:'smooth', block:'center'});
+    }
+  }, 300);
+}
+
+function sendBudgetToCalc() {
+  const left = parseFloat(document.getElementById('br-left')?.textContent?.replace(/[^0-9]/g,'')) || 0;
+  if (left <= 0) { showNotice('Fyll i budget först.'); return; }
+  showPage('home');
+  setTimeout(function() {
+    const payInput = document.getElementById('payment');
+    if (payInput) {
+      payInput.value = left;
+      payInput.classList.add('has-value');
+      payInput.scrollIntoView({behavior:'smooth', block:'center'});
+    }
+  }, 300);
+}
+
 </script>
 </body>
 </html>
