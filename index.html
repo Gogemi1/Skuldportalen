@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Skuldportalen — Från kaos till kontroll</title>
+  <!-- BUILD: v20260321-B -->
 <meta name="description" content="Lägg in dina skulder och se exakt vilket datum du är skuldfri. Gratis kalkylator, strategi och ackordsanalys — byggt av en fd inkassohandläggare.">
 <meta property="og:title" content="Skuldportalen — Från kaos till kontroll">
 <meta property="og:description" content="Se ditt skuldfrihetsdatum direkt. Gratis, ingen registrering krävs.">
@@ -1426,7 +1427,7 @@ function showPage(p) {
   if (!target) return;
   target.classList.add('active');
   window.scrollTo(0,0);
-  if (p === 'debts') { renderAll(); switchTab('debts'); }
+  if (p === 'debts') { renderAll(); }
 }
 // Sätt has-value och kör kalkylator automatiskt vid laddning
 document.addEventListener('DOMContentLoaded', function() {
@@ -2212,43 +2213,8 @@ let kfmDecision = null;   // 'yes', 'no', 'unknown'
 
 const CREDITORS = ['Intrum Justitia AB', 'Svea Inkasso AB', 'Lowell Sverige AB', 'Sergel Kredittjänster AB', 'Lindorff AB', 'Aktiv Inkasso AB', 'Collectia AB', 'Inkassogram AB', 'Marginalen Bank', 'Hoist Finance AB', 'Portfolio Recovery Associates', 'Alektum Group AB', 'Gothia Financial Group', 'Coop Bank', 'Klarna Bank AB', 'Resurs Bank AB', 'Collector Bank AB', 'Nordea Bank AB', 'Swedbank AB', 'Handelsbanken', 'SEB AB', 'Danske Bank', 'ICA Banken AB', 'Santander Consumer Bank', 'BMW Financial Services', 'Volkswagen Financial Services', 'Tele2 Sverige AB', 'Telia Sverige AB', 'Three AB', 'Telenor Sverige AB', 'Vattenfall AB', 'E.ON Sverige AB', 'Kronofogdemyndigheten', 'Skatteverket', 'CSN'];
 
-function filterCreditors(val) {
-  const dropdown = document.getElementById('creditor-dropdown');
-  if (!val || val.length < 2) { dropdown.style.display='none'; return; }
-  const matches = CREDITORS.filter(function(c){ return c.toLowerCase().includes(val.toLowerCase()); }).slice(0, 8);
-  if (matches.length === 0) {
-    dropdown.innerHTML = '';
-    const div = document.createElement('div');
-    div.style.cssText = 'padding:10px 14px;font-size:13px;color:var(--ink-muted);';
-    div.textContent = '"' + val + '" — hittades inte i listan. Du kan ändå använda detta namn.';
-    dropdown.appendChild(div);
-    dropdown.style.display = 'block';
-    return;
-  }
-  dropdown.innerHTML = '';
-  matches.forEach(function(c) {
-    const div = document.createElement('div');
-    div.style.cssText = 'padding:10px 14px;font-size:13px;cursor:pointer;border-bottom:0.5px solid var(--border);';
-    const safe = val.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-    div.innerHTML = c.replace(new RegExp(safe,'gi'),'<strong>$&</strong>');
-    div.addEventListener('mousedown', function(){ selectCreditor(c); });
-    dropdown.appendChild(div);
-  });
-  dropdown.style.display = 'block';
-}
 
-function selectCreditor(name) {
-  const input = document.getElementById('ack-creditor');
-  if (input) { input.value = name; input.classList.add('has-value'); }
-  document.getElementById('creditor-dropdown').style.display = 'none';
-}
 
-function hideCreditors() {
-  setTimeout(function() {
-    const d = document.getElementById('creditor-dropdown');
-    if (d) d.style.display = 'none';
-  }, 200);
-}
 
 function pickDebtChar(el, char) {
   document.querySelectorAll('#char-private, #char-public').forEach(function(b){ b.classList.remove('active'); });
@@ -2564,20 +2530,6 @@ function renderHolisticPlan(parsedDebts, lumpSum, monthlyBudget) {
 // VISA ACKORDSRESULTAT
 // ============================================================
 
-function showAckordResultsWithBudget(parsedDebts, filename, lumpAmt, monthlyBudget) {
-  window._currentUser = user;
-  renderHolisticPlan(parsedDebts, lumpAmt || 0, monthlyBudget || 0);
-  const prem = document.getElementById('prem-gate');
-  premiumOn = false; saveState();
-  if (prem) prem.style.display = 'block';
-  const guide = document.getElementById('ackord-guide');
-  if (guide) guide.style.display = 'none';
-  const banner = document.getElementById('uc-banner');
-  if (banner && filename) {
-    banner.style.cssText = 'background:var(--teal-light);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--teal);font-weight:500;';
-    banner.textContent = 'UC-rapport analyserad: ' + filename + ' · ' + parsedDebts.length + ' skulder hittade';
-  }
-}
 
 function showAckordResults(parsedDebts, filename) {
   document.getElementById('ack-step-parsing').style.display = 'none';
@@ -2605,48 +2557,12 @@ function showAckordResults(parsedDebts, filename) {
 // SUBMIT, RESET OCH ACKORDSFLÖDE
 // ============================================================
 
-function submitManualAckord() {
-  if (ackDebts.length === 0) { showNotice('Lägg till minst en skuld.'); return; }
-  // Hämta värden INNAN formuläret döljs
-  const lumpAmt = parseFloat(document.getElementById('ack-lump-amount')?.value) || 0;
-  const monthlyBudget = parseFloat(document.getElementById('ack-monthly-budget')?.value) ||
-                        parseFloat(document.getElementById('payment')?.value) || 0;
-  document.getElementById('ack-step-upload').style.display = 'none';
-  document.getElementById('ack-step-results').style.display = 'block';
-  showAckordResultsWithBudget(ackDebts, null, lumpAmt, monthlyBudget);
-  const step3 = document.getElementById('prog-step3');
-  if (step3) step3.style.opacity = '1';
-  const lbl = document.getElementById('prog-step-label');
-  if (lbl) lbl.textContent = 'Steg 3 av 3 — Din plan';
-}
 
-function resetAckord() {
-  document.getElementById('ack-step-upload').style.display = 'block';
-  document.getElementById('ack-step-parsing').style.display = 'none';
-  document.getElementById('ack-step-results').style.display = 'none';
-  showAckordMethod(null);
-  const step2 = document.getElementById('prog-step2');
-  const step3 = document.getElementById('prog-step3');
-  if (step2) step2.style.opacity = '0.3';
-  if (step3) step3.style.opacity = '0.3';
-  const lbl = document.getElementById('prog-step-label');
-  if (lbl) lbl.textContent = 'Steg 1 av 3 — Skulder';
-}
 
 // ============================================================
 // PREMIUM
 // ============================================================
 
-function unlockLevel(level) {
-  premiumOn = level; saveState();
-  const gate = document.getElementById('prem-gate');
-  if (gate) gate.style.display = 'none';
-  if (level >= 2) renderDynamicGuide();
-  if (level >= 3) showPdfButton();
-  if (level === 1) showNotice('Åtgärdsförslag upplåst!', 'success');
-  const shareBtn = document.getElementById('share-btn-result');
-  if (shareBtn) shareBtn.style.display = 'block';
-}
 
 function unlockPremium() { unlockLevel(3); }
 
@@ -2779,41 +2695,8 @@ function copyLetter(i) {
 // DELA-MODAL
 // ============================================================
 
-function openShareModal() {
-  const dateEl = document.getElementById('tot-date');
-  const date = dateEl ? dateEl.textContent : (document.getElementById('result-date') ? document.getElementById('result-date').textContent : '—');
-  document.getElementById('share-date').textContent = date;
-  const maxMonths = debts.length > 0 ? Math.max(...debts.map(d => { const r=freeDate(d.amount,d.rate,d.payment); return r?r.months:0; })) : 0;
-  document.getElementById('share-months').textContent = maxMonths > 0 ? maxMonths + ' mån' : '—';
-  const stratNames = {avalanche:'Avalanche', snowball:'Snowball', balanced:'Balanserad'};
-  document.getElementById('share-strategy').textContent = stratNames[strategy] || 'Avalanche';
-  const ackordRow = document.getElementById('share-ackord-row');
-  const ackordSaving = document.getElementById('share-ackord-saving');
-  if (debts.length > 0 && ackordRow && ackordSaving) {
-    const totalDebt = debts.reduce((s,d) => s+d.amount, 0);
-    ackordRow.style.display = 'block';
-    ackordSaving.textContent = 'upp till ' + fmt(Math.round(totalDebt*0.40)) + ' kr';
-  }
-  document.getElementById('share-modal-bg').classList.add('open');
-}
 
-function closeShareModal(e) {
-  if (e.target === document.getElementById('share-modal-bg'))
-    document.getElementById('share-modal-bg').classList.remove('open');
-}
 
-function copyShareText() {
-  const date = document.getElementById('share-date').textContent;
-  const months = document.getElementById('share-months').textContent;
-  const strat = document.getElementById('share-strategy').textContent;
-  const ackord = document.getElementById('share-ackord-saving')?.textContent || '';
-  let text = 'Jag är skuldfri ' + date + ' — ' + months + ' från nu. Min strategi: ' + strat + '.';
-  if (ackord && ackord !== '—') text += ' Potentiell besparing: ' + ackord + '.';
-  text += ' Räkna ut ditt datum på skuldportalen.se';
-  navigator.clipboard.writeText(text)
-    .then(() => showNotice('Text kopierad!', 'success'))
-    .catch(() => showNotice('Markera texten och kopiera manuellt.'));
-}
 
 function copyTpl() {
   const el = document.getElementById('ackord-template-text');
@@ -2826,51 +2709,12 @@ function copyTpl() {
 // FAQ
 // ============================================================
 
-function toggleFaq(btn) {
-  const item = btn.closest('.faq-item');
-  if (!item) return;
-  const isOpen = item.classList.contains('open');
-  document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
-  if (!isOpen) item.classList.add('open');
-}
 
-function filterFaq(cat, btn) {
-  document.querySelectorAll('.faq-cat').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('.faq-item').forEach(item => {
-    if (cat === 'all' || item.dataset.cat === cat) {
-      item.classList.remove('hidden');
-    } else {
-      item.classList.add('hidden');
-      item.classList.remove('open');
-    }
-  });
-}
 
 // ============================================================
 // AUTO-IMPORT
 // ============================================================
 
-function autoImportToAckord() {
-  if (debts.length > 0 && ackDebts.length === 0) {
-    importDebtFromDashboard();
-  } else if (debts.length > 0) {
-    ackDebts = ackDebts.map(a => {
-      const d = debts.find(d => String(d.id) === String(a.id));
-      if (!d) return a;
-      return Object.assign({}, a, { name: d.name, amount: d.amount, rate: d.rate, color: d.color, principal: d.principal || a.principal });
-    });
-    debts.forEach(d => {
-      if (!ackDebts.find(a => String(a.id) === String(d.id))) {
-        ackDebts.push({ id: d.id, name: d.name, amount: d.amount, principal: d.principal || d.amount,
-          rate: d.rate, color: d.color, payment: d.payment, ageMonths: d.ageMonths||d.age||0, status: d.status||'inkasso', dueDate: d.dueDate||'', creditor: d.creditor||'', source: 'import' });
-      }
-    });
-    ackDebts = ackDebts.filter(a => debts.find(d => String(d.id) === String(a.id)));
-    saveState();
-    renderAckManualList();
-  }
-}
 
 // ============================================================
 // UC PDF-UPPLADDNING
@@ -3413,6 +3257,7 @@ function register() {
   if (!ok) return;
   user = {name:n, email:e}; saveState(); updateNav(); showWelcome(n);
 }
+
 </script>
 </body>
 </html>
