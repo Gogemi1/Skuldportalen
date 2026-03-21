@@ -131,6 +131,7 @@
   .debt-info { flex: 1; min-width: 0; }
   .debt-name { font-size: 14px; font-weight: 500; }
   .debt-meta { font-size: 12px; color: var(--ink-muted); margin-top: 2px; }
+\' + \'% ränta</div>\' +
   .debt-amount { font-size: 16px; font-weight: 500; flex-shrink: 0; }
   .debt-remove { background: none; border: none; cursor: pointer; color: var(--ink-muted); font-size: 20px; padding: 0 4px; line-height: 1; transition: color 0.15s; }
   .debt-remove:hover { color: var(--red); }
@@ -932,6 +933,8 @@
         <div class="field-group" style="margin:0;"><div class="field-label">Transport</div><input type="number" id="db-transport" placeholder="t.ex. 2 500" min="0" oninput="updateDashBudget()"></div>
         <div class="field-group" style="margin:0;"><div class="field-label">Telefon & internet</div><input type="number" id="db-phone" placeholder="t.ex. 500" min="0" oninput="updateDashBudget()"></div>
         <div class="field-group" style="margin:0;"><div class="field-label">Försäkringar</div><input type="number" id="db-insurance" placeholder="t.ex. 600" min="0" oninput="updateDashBudget()"></div>
+        <div class="field-group" style="margin:0;"><div class="field-label">Kläder & hygien</div><input type="number" id="db-clothes" placeholder="t.ex. 800" min="0" oninput="updateDashBudget()"></div>
+        <div class="field-group" style="margin:0;"><div class="field-label">Aktiva lånekostnader (kr/mån)</div><input type="number" id="db-loans" placeholder="Befintliga amorteringar" min="0" oninput="updateDashBudget()"><div style="font-size:10px;color:var(--ink-muted);margin-top:3px;">Månadskostnad för lån du redan betalar</div></div>
         <div class="field-group" style="margin:0;"><div class="field-label">Övrigt</div><input type="number" id="db-other" placeholder="t.ex. 500" min="0" oninput="updateDashBudget()"></div>
       </div>
     </div>
@@ -980,9 +983,24 @@
           <div class="field-label">Ränta per år (%)</div>
           <input type="number" id="add-rate" placeholder="t.ex. 20" min="0" max="100" step="0.1">
         </div>
-        <div class="field-group">
-          <div class="field-label">Betalning/mån (kr)</div>
-          <input type="number" id="add-pay" placeholder="Minimibetalning" min="0">
+      </div>
+      <div class="form-row" style="grid-template-columns:1fr 1fr;margin-top:4px;">
+        <div class="field-group" style="margin:0;position:relative;">
+          <div class="field-label">Vem är skulden hos? <span style="font-size:10px;color:var(--ink-muted);">Längst upp på brevet</span></div>
+          <input type="text" id="add-creditor" placeholder="t.ex. Intrum Justitia AB" autocomplete="off"
+            oninput="filterAddCreditor(this)" onblur="hideAddCreditor()">
+          <div id="add-creditor-dropdown" style="display:none;position:absolute;z-index:200;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);width:100%;max-height:180px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.08);"></div>
+        </div>
+        <div class="field-group" style="margin:0;">
+          <div class="field-label">Inkassodatum <span style="font-size:10px;color:var(--ink-muted);">Finns i brevet</span></div>
+          <input type="date" id="add-inkasso-date">
+        </div>
+      </div>
+      <div class="field-group" style="margin-top:4px;">
+        <div class="field-label">Var befinner sig skulden?</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+          <button class="ack-status-pill" id="add-status-inkasso" onclick="pickAddStatus(this,'inkasso')">Hos inkassobolag</button>
+          <button class="ack-status-pill" id="add-status-BF" onclick="pickAddStatus(this,'BF')">Hos Kronofogden</button>
         </div>
       </div>
       <button class="btn btn-dark" style="height:44px;font-size:14px;" id="add-debt-btn" onclick="addDebt()">+ Lägg till skuld</button>
@@ -994,16 +1012,7 @@
       <div id="add-success" style="display:none;font-size:12px;color:var(--teal);font-weight:500;margin-top:8px;text-align:center;animation:fadeUp 0.3s ease both;">✓ Skuld tillagd!</div>
     </div>
     <div class="total-summary" id="total-box" style="display:none;">
-      <div class="total-row"><span class="total-lbl">Total skuld</span><span class="total-val" id="tot-debt">—</span></div>
-      <div class="total-row"><span class="total-lbl">Total månadsbetalning</span><span class="total-val" id="tot-pay">—</span></div>
-      <div class="total-row"><span class="total-lbl" style="font-weight:500;">Skuldfri</span><span class="total-date" id="tot-date">—</span></div>
-    </div>
-    <div id="freedom-date-card" style="display:none;background:var(--teal-light);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:12px;">
-      <div style="font-size:11px;color:var(--teal);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">Skuldfri</div>
-      <div style="font-family:'DM Serif Display',serif;font-size:24px;color:var(--teal);letter-spacing:-0.5px;" id="freedom-date-val">—</div>
-      <div style="font-size:11px;color:var(--teal);opacity:0.8;margin-top:2px;" id="freedom-date-months"></div>
-    </div>
-    <button class="btn btn-teal" id="to-strat-btn" style="display:none;" onclick="switchTab('ackord')">Se min plan →</button>
+al" id="to-strat-btn" style="display:none;" onclick="switchTab('ackord')">Se min plan →</button>
 
   </div>
 
@@ -1037,7 +1046,7 @@
       <div class="page-title" style="margin-bottom:0;">Min plan</div>
       <button onclick="switchTab('debts')" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--ink-muted);font-family:inherit;padding:0;">← Mina skulder</button>
     </div>
-    <div class="page-sub">Lägg in dina skulder och vi tar fram en plan.</div>
+    <div class="page-sub">Komplettera dina skulder och vi tar fram en förhandlingsplan.</div>
 
 
 
@@ -1047,31 +1056,6 @@
 <div class="method-grid" style="grid-template-columns:repeat(3,1fr);">
           <div class="method-card" onclick="showAckordMethod('manual')">
             <div class="method-icon" style="background:var(--teal-light);">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0d7a5f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </div>
-            <div class="method-title">Fyll i manuellt</div>
-            <div class="method-desc">Ange skulder, belopp och ålder direkt.</div>
-            <div class="method-tag" style="background:var(--teal-light);color:var(--teal);">Direkt</div>
-          </div>
-          <div class="method-card" onclick="showAckordMethod('uc')">
-            <div class="method-icon" style="background:var(--purple-light);">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4a3ab7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            </div>
-            <div class="method-title">Ladda upp UC-rapport</div>
-            <div class="method-desc">Vi läser av din rapport automatiskt.</div>
-            <div class="method-tag" style="background:var(--purple-light);color:var(--purple);">Mer exakt</div>
-          </div>
-          <div class="method-card" onclick="importDebtFromDashboard()" id="import-method-card" style="display:none;">
-            <div class="method-icon" style="background:var(--amber-light);">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c97a1a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-            </div>
-            <div class="method-title">Importera skulder</div>
-            <div class="method-desc" id="import-card-desc">Hämta dina sparade skulder.</div>
-            <div class="method-tag" style="background:var(--amber-light);color:var(--amber);">Snabbast</div>
-          </div>
-        </div>
-      </div>
-
       <!-- MANUELL INMATNING -->
       <div id="ack-manual-form">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
@@ -1085,86 +1069,6 @@
         </div>
 
         <div id="ack-manual-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;"></div>
-
-        <div class="add-form">
-          <div class="add-form-title">Lägg till en skuld</div>
-
-          <div class="form-row" style="grid-template-columns:1fr 1fr;margin-bottom:10px;">
-            <div class="field-group" style="margin:0;">
-              <div class="field-label">Totalt saldo (kr)
-                <span style="font-size:10px;color:var(--ink-muted);font-weight:300;">Det belopp du är skyldig idag</span>
-              </div>
-              <input type="number" id="ack-amt" placeholder="t.ex. 25 000" min="0">
-            </div>
-            <div class="field-group" style="margin:0;">
-              <div class="field-label">Ursprungsbelopp (kr)
-                <span style="font-size:10px;color:var(--ink-muted);font-weight:300;">Vad du ursprungligen var skyldig — kapitalbeloppet</span>
-              </div>
-              <input type="number" id="ack-principal" placeholder="t.ex. 8 000" min="0">
-              <div style="font-size:10px;color:var(--ink-muted);margin-top:4px;line-height:1.5;">Titta efter "kapitalbelopp", "ursprunglig fordran" eller "lånebelopp" i brevet. Det är beloppet <em>innan</em> ränta och avgifter tillkom.</div>
-            </div>
-          </div>
-
-          <div class="form-row" style="grid-template-columns:1fr 1fr;margin-bottom:10px;">
-            <div class="field-group" style="margin:0;">
-              <div class="field-label">Vilket datum fick skulden inkasso?
-                <span style="font-size:10px;color:var(--ink-muted);font-weight:300;">Datumet då inkassobolaget tog över</span>
-              </div>
-              <input type="date" id="ack-date" max="">
-            </div>
-            <div class="field-group" style="margin:0;">
-              <div class="field-label">Skuldens karaktär
-                <span style="font-size:10px;color:var(--ink-muted);font-weight:300;">Avgör om ackord är möjligt</span>
-              </div>
-              <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;">
-                <button class="ack-status-pill" id="char-private" onclick="pickDebtChar(this,'private')">Privat företag</button>
-                <button class="ack-status-pill" id="char-public" onclick="pickDebtChar(this,'public')">Myndighet (CSN, Skatt m.fl.)</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- KVALIFICERINGSFRÅGA: KFM-beslut -->
-          <div class="field-group" id="kfm-question" style="display:none;margin-bottom:14px;">
-            <div class="field-label">Har Kronofogden fattat ett formellt beslut om skulden?
-              <span style="font-size:10px;color:var(--ink-muted);font-weight:300;">Betalningsföreläggande eller utmätning</span>
-            </div>
-            <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
-              <button class="ack-status-pill" id="kfm-yes" onclick="pickKfmDecision(this,'yes')">Ja — KFM har fattat beslut</button>
-              <button class="ack-status-pill" id="kfm-no" onclick="pickKfmDecision(this,'no')">Nej</button>
-              <button class="ack-status-pill" id="kfm-unknown" onclick="pickKfmDecision(this,'unknown')">Vet inte</button>
-            </div>
-            <div id="kfm-warning" style="display:none;background:var(--amber-light);border-radius:var(--radius-sm);padding:10px 12px;margin-top:8px;font-size:12px;color:var(--amber-dark);line-height:1.5;"></div>
-          </div>
-
-          <div class="field-group">
-            <div class="field-label">Var befinner sig skulden just nu?
-              <span style="font-size:10px;color:var(--ink-muted);font-weight:300;display:block;margin-top:2px;">Osäker? Titta på det senaste brevet du fått om skulden.</span>
-            </div>
-            <div class="status-grid" id="ack-status-grid">
-              <div class="status-card" data-status="inkasso" data-rate="20" onclick="pickAckStatus(this)">
-                <div class="status-card-title">Hos ett inkassobolag</div>
-                <div class="status-card-desc">Du har fått brev från t.ex. Intrum, Svea eller Lowell</div>
-              </div>
-              <div class="status-card" data-status="BF" data-rate="8" onclick="pickAckStatus(this);showKfmQuestion('BF')">
-                <div class="status-card-title">Hos Kronofogden</div>
-                <div class="status-card-desc">Du har fått brev från Kronofogden — men ingen lön dras ännu</div>
-              </div>
-              <div class="status-card" data-status="UTM" data-rate="8" onclick="pickAckStatus(this);showKfmQuestion('UTM')">
-                <div class="status-card-desc">Pengar dras automatiskt från din lön eller ditt konto</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="field-group" style="margin-bottom:14px;position:relative;">
-            <div class="field-label">Vem är skulden hos?
-              <span style="font-size:10px;color:var(--ink-muted);font-weight:300;">Står längst upp på brevet</span>
-            </div>
-            <input type="text" id="ack-creditor" placeholder="Börja skriva t.ex. Intrum..." 
-              autocomplete="off" oninput="filterCreditors(this.value)" onblur="hideCreditors()">
-            <div id="creditor-dropdown" style="display:none;position:absolute;z-index:100;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);width:100%;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.08);"></div>
-          </div>
-          <button class="btn btn-dark" style="height:44px;font-size:14px;" onclick="addAckDebt()">+ Lägg till skuld</button>
-        </div>
 
         <!-- BETALNINGSFÖRMÅGA -->
         <div id="ack-payment-ability" style="display:none;">
@@ -1540,13 +1444,7 @@
       <div class="auth-switch"><a onclick="showPage('register')">Glömt lösenord?</a></div>
     </div>
   </div>
-</div>
-
-
-
-
-
-<script>
+</di<script>
 
 
 const COLORS = ['#0d7a5f','#7f77dd','#c97a1a','#c94a2e','#1aab84','#3a86c8'];
@@ -1556,6 +1454,12 @@ let debts = [], strategy = 'avalanche', premiumOn = false, user = null, selType 
 function saveState() {
   try {
     localStorage.setItem('sp_debts', JSON.stringify(debts));
+    // Spara budget-fält
+    const budgetKeys = ['db-income','db-benefit','db-housing','db-food','db-transport','db-phone','db-insurance','db-loans','db-clothes','db-other'];
+    const budgetVals = {};
+    budgetKeys.forEach(function(k){ const el=document.getElementById(k); if(el) budgetVals[k]=el.value; });
+    localStorage.setItem('sp_budget_vals', JSON.stringify(budgetVals));
+    localStorage.setItem('sp_dash_budget', dashBudgetMonthly.toString());
     localStorage.setItem('sp_strategy', strategy);
     localStorage.setItem('sp_premium', premiumOn ? '1' : '0');
     localStorage.setItem('sp_ack_debts', JSON.stringify(ackDebts));
@@ -1575,6 +1479,18 @@ function loadState() {
     if (p) premiumOn = p === '1' ? 3 : false;
     const u = localStorage.getItem('sp_user');
     if (u) { user = JSON.parse(u); }
+    const budgetVals = localStorage.getItem('sp_budget_vals');
+    if (budgetVals) {
+      try {
+        const bv = JSON.parse(budgetVals);
+        Object.keys(bv).forEach(function(k){
+          const el = document.getElementById(k);
+          if (el && bv[k]) { el.value = bv[k]; el.classList.add('has-value'); }
+        });
+      } catch(e) {}
+    }
+    const dbBudget = localStorage.getItem('sp_dash_budget');
+    if (dbBudget) dashBudgetMonthly = parseFloat(dbBudget) || 0;
     const ad = localStorage.getItem('sp_ack_debts');
     if (ad) ackDebts = JSON.parse(ad);
     const pa = localStorage.getItem('sp_payment_ability');
@@ -1625,6 +1541,13 @@ function showPage(p) {
 }
 // Sätt has-value och kör kalkylator automatiskt vid laddning
 document.addEventListener('DOMContentLoaded', function() {
+  // Om inloggad - sätt budget som aktiv flik
+  const savedUser = localStorage.getItem('sp_user');
+  if (savedUser) {
+    setTimeout(function(){ 
+      if (document.getElementById('tab-budget')) switchTab('budget');
+    }, 100);
+  }
   // Sätt max på datum-fält till idag
   const today = new Date().toISOString().split('T')[0];
   document.querySelectorAll('input[type="date"]').forEach(function(el) {
@@ -1697,41 +1620,13 @@ function handleSave() {
     reminder.style.display = 'block';
   }
 }
-function handleAddMore() { user ? showPage('debts') : showPage('register'); }
-
-function register() {
-  const n=document.getElementById('reg-name').value.trim();
-  const e=document.getElementById('reg-email').value.trim();
-  let ok=true;
-  ['err-name','err-email'].forEach(function(id){
-    const el = document.getElementById(id); if(el) el.classList.remove('show');
-  });
-  ['reg-name','reg-email'].forEach(function(id){
-    const el = document.getElementById(id); if(el) el.classList.remove('input-error');
-  });
-  if (!n) { document.getElementById('err-name').classList.add('show'); document.getElementById('reg-name').classList.add('input-error'); ok=false; }
-  if (!e||!e.includes('@')) { document.getElementById('err-email').classList.add('show'); document.getElementById('reg-email').classList.add('input-error'); ok=false; }
-  if (!ok) return;
-  user={name:n,email:e};
-  // Importera kalkylatorns värden om inga skulder finns sparade
-  if (debts.length === 0) {
-    const d = parseFloat(document.getElementById('debt')?.value) || 0;
-    const r = parseFloat(document.getElementById('rate')?.value) || 0;
-    const p = parseFloat(document.getElementById('payment')?.value) || 0;
-    if (d > 0) {
-      debts.push({
-        id: Date.now(),
-        name: 'Min skuld',
-        amount: d,
-        rate: r,
-        payment: p,
-        color: COLORS[0],
-        age: 12
-      });
-    }
+function handleAddMore() {
+  if (user) {
+    showPage('debts');
+    setTimeout(function(){ switchTab('budget'); }, 50);
+  } else {
+    showPage('register');
   }
-  saveState(); updateNav();
-  showWelcome(n);
 }
 
 function checkPwStrength(pw) {
@@ -1744,6 +1639,7 @@ function checkPwStrength(pw) {
 
 function showWelcome(name) {
   showPage('debts');
+  setTimeout(function(){ switchTab('budget'); }, 50);
   setTimeout(function() {
     const banner = document.getElementById('welcome-banner');
     if (banner) {
@@ -1800,7 +1696,6 @@ function pickType(btn,name,rate) {
 function addDebt() {
   const amt=parseFloat(document.getElementById('add-amt').value);
   const rate=parseFloat(document.getElementById('add-rate').value)||18;
-  let pay=parseFloat(document.getElementById('add-pay').value);
   if (!amt||amt<=0) {
     const amtInput = document.getElementById('add-amt');
     amtInput.classList.add('input-error');
@@ -1811,10 +1706,15 @@ function addDebt() {
   const mr=rate/100/12;
   if (!pay||pay<=0) pay=Math.max(Math.round(amt*mr*1.15+50),100);
   const principal = parseFloat(document.getElementById('add-principal')?.value) || amt;
-  debts.push({id:Date.now(),name:selType.name,amount:amt,principal:principal,rate,payment:pay,color:COLORS[debts.length%COLORS.length],age:Math.floor(Math.random()*28+3)}); saveState();
+  const creditorVal = (document.getElementById('add-creditor')?.value||'').trim();
+  const inkassoDatum = document.getElementById('add-inkasso-date')?.value || '';
+  const ageFromInkasso = inkassoDatum ? Math.max(0, Math.floor((new Date()-new Date(inkassoDatum))/(1000*60*60*24*30.44))) : Math.floor(Math.random()*28+3);
+  debts.push({id:Date.now(),name:selType.name,amount:amt,principal:principal,rate,payment:pay,
+    creditor:creditorVal, dueDate:inkassoDatum, status:addDebtStatus||'inkasso',
+    ageMonths:ageFromInkasso,
+    color:COLORS[debts.length%COLORS.length],age:ageFromInkasso}); saveState();
   renderAll();
   document.getElementById('add-amt').value='';
-  document.getElementById('add-pay').value='';
   const addPrincipal = document.getElementById('add-principal');
   if (addPrincipal) addPrincipal.value='';
   document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('selected'));
@@ -1904,7 +1804,7 @@ function renderAll() {
       '<div class="debt-color-dot" style="background:' + d.color + '"></div>' +
       '<div class="debt-info">' +
         '<div class="debt-name">' + sanitize(d.name) + '</div>' +
-        '<div class="debt-meta">' + d.rate + '% ränta · ' + fmt(d.payment) + ' kr/mån</div>' +
+        '<div class="debt-meta">' + d.rate + '% ränta</div>' +
       '</div>' +
       '<div class="debt-amount">' + fmt(d.amount) + ' kr</div>' +
       '<button class="debt-edit" title="Redigera">✎</button>' +
@@ -3009,7 +2909,7 @@ function autoImportToAckord() {
     debts.forEach(d => {
       if (!ackDebts.find(a => String(a.id) === String(d.id))) {
         ackDebts.push({ id: d.id, name: d.name, amount: d.amount, principal: d.principal || d.amount,
-          rate: d.rate, color: d.color, payment: d.payment, ageMonths: 0, status: '', dueDate: '', creditor: '', source: 'import' });
+          rate: d.rate, color: d.color, payment: d.payment, ageMonths: d.ageMonths||d.age||0, status: d.status||'inkasso', dueDate: d.dueDate||'', creditor: d.creditor||'', source: 'import' });
       }
     });
     ackDebts = ackDebts.filter(a => debts.find(d => String(d.id) === String(a.id)));
@@ -3090,7 +2990,7 @@ function updateBudget() {
   const benefit = parseFloat(document.getElementById('b-benefit')?.value) || 0;
   const totalIncome = income + benefit;
 
-  const keys = ['housing','food','transport','phone','insurance','clothing','leisure','other'];
+  const keys = ['housing','food','transport','phone','insurance','clothes','loans','other'];
   let totalExp = 0;
   keys.forEach(function(k) {
     const val = parseFloat(document.getElementById('b-'+k)?.value) || 0;
@@ -3222,7 +3122,7 @@ function updateDashBudget() {
   const income = parseFloat(document.getElementById('db-income')?.value) || 0;
   const benefit = parseFloat(document.getElementById('db-benefit')?.value) || 0;
   const totalIncome = income + benefit;
-  const keys = ['housing','food','transport','phone','insurance','other'];
+  const keys = ['housing','food','transport','phone','insurance','clothes','loans','other'];
   let totalExp = 0;
   keys.forEach(function(k) { totalExp += parseFloat(document.getElementById('db-'+k)?.value) || 0; });
   const left = totalIncome - totalExp;
@@ -3407,7 +3307,7 @@ function autoImportToAckord() {
     });
     debts.forEach(function(d){
       if (!ackDebts.find(function(a){ return String(a.id)===String(d.id); }))
-        ackDebts.push({id:d.id,name:d.name,amount:d.amount,principal:d.principal||d.amount,rate:d.rate,payment:d.payment,ageMonths:0,status:'',dueDate:'',creditor:'',source:'import'});
+        ackDebts.push({id:d.id,name:d.name,amount:d.amount,principal:d.principal||d.amount,rate:d.rate,payment:d.payment,ageMonths:d.ageMonths||d.age||0,status:d.status||'inkasso',dueDate:d.dueDate||'',creditor:d.creditor||'',source:'import'});
     });
     ackDebts = ackDebts.filter(function(a){ return debts.find(function(d){ return String(d.id)===String(a.id); }); });
     saveState(); renderAckManualList();
@@ -3500,6 +3400,47 @@ function handleFileSelectToDebts(e) {
     };
     reader.readAsArrayBuffer(file);
   });
+}
+
+var addDebtStatus = null;
+
+function pickAddStatus(el, status) {
+  document.querySelectorAll('#add-status-inkasso, #add-status-BF').forEach(function(b){ b.classList.remove('active'); });
+  el.classList.add('active');
+  addDebtStatus = status;
+}
+
+function filterAddCreditor(input) {
+  const val = input.value;
+  const dropdown = document.getElementById('add-creditor-dropdown');
+  if (!dropdown) return;
+  if (!val || val.length < 2) { dropdown.style.display='none'; return; }
+  const matches = CREDITORS.filter(function(c){ return c.toLowerCase().includes(val.toLowerCase()); }).slice(0,8);
+  dropdown.innerHTML = '';
+  if (matches.length === 0) {
+    const div = document.createElement('div');
+    div.style.cssText = 'padding:10px 14px;font-size:13px;color:var(--ink-muted);';
+    div.textContent = '"' + val + '" — hittades inte. Du kan ändå använda detta namn.';
+    dropdown.appendChild(div); dropdown.style.display='block'; return;
+  }
+  matches.forEach(function(c){
+    const div = document.createElement('div');
+    div.style.cssText = 'padding:10px 14px;font-size:13px;cursor:pointer;border-bottom:0.5px solid var(--border);';
+    div.textContent = c;
+    div.addEventListener('mousedown', function(){
+      input.value = c; input.classList.add('has-value');
+      dropdown.style.display = 'none';
+    });
+    dropdown.appendChild(div);
+  });
+  dropdown.style.display = 'block';
+}
+
+function hideAddCreditor() {
+  setTimeout(function(){
+    const d = document.getElementById('add-creditor-dropdown');
+    if (d) d.style.display = 'none';
+  }, 200);
 }
 </script>
 </body>
