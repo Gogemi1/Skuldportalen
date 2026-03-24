@@ -675,30 +675,7 @@
     </div>
   </section>
 
-  <div class="budget-promo">
-    <div class="budget-promo-inner">
-      <div class="budget-promo-left">
-        <div class="budget-promo-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3C3489" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-        </div>
-        <div>
-          <div class="budget-promo-title">Vet du inte vad du kan betala per månad?</div>
-          <div class="budget-promo-sub">Testa vår budgetsimulator — gratis, inget konto krävs.</div>
-        </div>
-      </div>
-      <button class="budget-promo-btn" onclick="showPage('budget')">Testa budgetsimulatorn →</button>
-    </div>
-  </div>
-
-  <section class="how-section">
-    <div class="section-label">Hur det fungerar</div>
-    <div class="section-title">Tre steg från kaos till kontroll</div>
-    <div class="steps-grid">
-      <div class="step-card" data-num="1"><div class="step-icon icon-teal">📋</div><h3>Lägg in dina skulder</h3><p>Ange belopp, ränta och vad du kan betala. Vi fyller i standardvärden om du inte vet — det tar under tre minuter.</p></div>
-      <div class="step-card" data-num="2"><div class="step-icon icon-amber">📊</div><h3>Fyll i din budget</h3><p>Vi räknar ut vad du har kvar varje månad och fördelar det optimalt på dina skulder — med 40% buffert för oväntade utgifter.</p></div>
-      <div class="step-card" data-num="3"><div class="step-icon icon-red">🤝</div><h3>Förhandla ned skulden</h3><p>Med Premium-analysen ser du vilka skulder som kan förhandlas ned — och får mallar för att kontakta fordringsägarna direkt.</p></div>
-    </div>
-  </section>
+  
 
 
 
@@ -933,43 +910,81 @@
 
   <div id="view-budget" class="dash-view" style="display:none;">
     <div class="page-title">Vad har du kvar varje månad?</div>
-    <div class="page-sub">Fyll i din inkomst och dina utgifter — vi räknar ut hur mycket som kan gå till dina skulder och hur snabbt du kan bli skuldfri.</div>
-    <div class="add-form" style="margin-top:16px;">
-      <div class="add-form-title">Inkomst per månad</div>
-      <div class="form-row" style="grid-template-columns:1fr 1fr;">
-        <div class="field-group" style="margin:0;"><div class="field-label">Nettolön (kr)</div><input type="number" id="db-income" placeholder="t.ex. 25 000" min="0" oninput="updateDashBudget()"></div>
-        <div class="field-group" style="margin:0;"><div class="field-label">Bidrag / ersättning (kr)</div><input type="number" id="db-benefit" placeholder="t.ex. 0" min="0" oninput="updateDashBudget()"></div>
+    <div class="page-sub" style="margin-bottom:28px;">Fyll i inkomst och utgifter — vi räknar ut hur mycket som kan gå till dina skulder.</div>
+    <div style="display:grid;grid-template-columns:300px 1fr;gap:40px;align-items:start;">
+
+      <!-- INFO-KOLUMN VÄNSTER -->
+      <div style="position:sticky;top:80px;">
+        <div style="background:var(--teal-light);border-radius:var(--radius);padding:24px 22px;border:1px solid rgba(13,122,95,0.12);">
+          <div style="font-size:11px;font-weight:600;color:var(--teal);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Steg 1 av 3</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:20px;color:var(--ink);margin-bottom:12px;line-height:1.3;">Förstå vad du har att röra dig med</div>
+          <div style="font-size:13px;color:var(--ink-soft);line-height:1.7;margin-bottom:16px;">Många med skulder vet inte exakt vad de har kvar varje månad. Det är startpunkten för allt — utan den siffran kan vi inte sätta upp en realistisk plan.</div>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+            <div style="display:flex;gap:10px;align-items:flex-start;">
+              <div style="width:20px;height:20px;border-radius:50%;background:var(--teal);color:white;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">1</div>
+              <div style="font-size:13px;color:var(--ink-soft);">Fyll i din nettoinkomst och eventuella bidrag</div>
+            </div>
+            <div style="display:flex;gap:10px;align-items:flex-start;">
+              <div style="width:20px;height:20px;border-radius:50%;background:var(--teal);color:white;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">2</div>
+              <div style="font-size:13px;color:var(--ink-soft);">Fyll i fasta utgifter — ungefärliga siffror räcker</div>
+            </div>
+            <div style="display:flex;gap:10px;align-items:flex-start;">
+              <div style="width:20px;height:20px;border-radius:50%;background:var(--teal);color:white;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">3</div>
+              <div style="font-size:13px;color:var(--ink-soft);">Vi reserverar 40% för oväntade utgifter — resten går till dina skulder</div>
+            </div>
+          </div>
+          <div style="padding-top:14px;border-top:1px solid rgba(13,122,95,0.15);font-size:12px;color:var(--teal);font-style:italic;">Dina uppgifter sparas bara i din webbläsare.</div>
+        </div>
       </div>
-    </div>
-    <div class="add-form" style="margin-top:12px;">
-      <div class="add-form-title">Fasta utgifter per månad</div>
-      <div class="form-row" style="grid-template-columns:1fr 1fr;">
-        <div class="field-group" style="margin:0;"><div class="field-label">Boende</div><input type="number" id="db-housing" placeholder="t.ex. 8 000" min="0" oninput="updateDashBudget()"></div>
-        <div class="field-group" style="margin:0;"><div class="field-label">Mat</div><input type="number" id="db-food" placeholder="t.ex. 3 500" min="0" oninput="updateDashBudget()"></div>
-        <div class="field-group" style="margin:0;"><div class="field-label">Transport</div><input type="number" id="db-transport" placeholder="t.ex. 2 500" min="0" oninput="updateDashBudget()"></div>
-        <div class="field-group" style="margin:0;"><div class="field-label">Telefon & internet</div><input type="number" id="db-phone" placeholder="t.ex. 500" min="0" oninput="updateDashBudget()"></div>
-        <div class="field-group" style="margin:0;"><div class="field-label">Försäkringar</div><input type="number" id="db-insurance" placeholder="t.ex. 600" min="0" oninput="updateDashBudget()"></div>
-        <div class="field-group" style="margin:0;"><div class="field-label">Kläder & hygien</div><input type="number" id="db-clothes" placeholder="t.ex. 800" min="0" oninput="updateDashBudget()"></div>
-        <div class="field-group" style="margin:0;"><div class="field-label">Aktiva lånekostnader (kr/mån)</div><input type="number" id="db-loans" placeholder="Befintliga amorteringar" min="0" oninput="updateDashBudget()"><div style="font-size:10px;color:var(--ink-muted);margin-top:3px;">Månadskostnad för lån du redan betalar</div></div>
-        <div class="field-group" style="margin:0;"><div class="field-label">Övrigt</div><input type="number" id="db-other" placeholder="t.ex. 500" min="0" oninput="updateDashBudget()"></div>
-      </div>
-    </div>
-    <div id="db-result" style="display:none;margin-top:16px;">
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
-        <div style="background:var(--surface);border-radius:var(--radius-sm);padding:14px;text-align:center;"><div style="font-size:18px;font-weight:700;" id="db-total-income">—</div><div style="font-size:10px;color:var(--ink-muted);text-transform:uppercase;margin-top:3px;">Inkomst</div></div>
-        <div style="background:var(--surface);border-radius:var(--radius-sm);padding:14px;text-align:center;"><div style="font-size:18px;font-weight:700;" id="db-total-exp">—</div><div style="font-size:10px;color:var(--ink-muted);text-transform:uppercase;margin-top:3px;">Utgifter</div></div>
-        <div style="background:var(--teal-light);border-radius:var(--radius-sm);padding:14px;text-align:center;"><div style="font-size:18px;font-weight:700;color:var(--teal);" id="db-left-val">—</div><div style="font-size:10px;color:var(--teal);text-transform:uppercase;margin-top:3px;">Kvar</div></div>
-      </div>
-      <div id="db-budget-msg" style="font-size:13px;color:var(--ink-muted);margin-bottom:12px;padding:12px 14px;background:var(--surface);border-radius:var(--radius-sm);line-height:1.6;"></div>
-      <div id="db-deficit-msg" style="display:none;background:var(--amber-light);border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;color:var(--amber-dark);margin-bottom:12px;"></div>
-      <button class="btn btn-teal" id="db-next-btn" style="display:none;" onclick="switchTab('debts')">Lägg till dina skulder →</button>
-    </div>
+
+      <!-- FORMULÄR HÖGER -->
+      <div>
+        <div class="add-form" style="margin-top:0;">
+          <div class="add-form-title">Inkomst per månad</div>
+          <div class="form-row" style="grid-template-columns:1fr 1fr;">
+            <div class="field-group" style="margin:0;"><div class="field-label">Nettolön (kr)</div><input type="number" id="db-income" placeholder="t.ex. 25 000" min="0" oninput="updateDashBudget()"></div>
+            <div class="field-group" style="margin:0;"><div class="field-label">Bidrag / ersättning (kr)</div><input type="number" id="db-benefit" placeholder="t.ex. 0" min="0" oninput="updateDashBudget()"></div>
+          </div>
+        </div>
+        <div class="add-form" style="margin-top:12px;">
+          <div class="add-form-title">Fasta utgifter per månad</div>
+          <div class="form-row" style="grid-template-columns:1fr 1fr;">
+            <div class="field-group" style="margin:0;"><div class="field-label">Boende</div><input type="number" id="db-housing" placeholder="t.ex. 8 000" min="0" oninput="updateDashBudget()"></div>
+            <div class="field-group" style="margin:0;"><div class="field-label">Mat</div><input type="number" id="db-food" placeholder="t.ex. 3 500" min="0" oninput="updateDashBudget()"></div>
+            <div class="field-group" style="margin:0;"><div class="field-label">Transport</div><input type="number" id="db-transport" placeholder="t.ex. 2 500" min="0" oninput="updateDashBudget()"></div>
+            <div class="field-group" style="margin:0;"><div class="field-label">Telefon & internet</div><input type="number" id="db-phone" placeholder="t.ex. 500" min="0" oninput="updateDashBudget()"></div>
+            <div class="field-group" style="margin:0;"><div class="field-label">Försäkringar</div><input type="number" id="db-insurance" placeholder="t.ex. 600" min="0" oninput="updateDashBudget()"></div>
+            <div class="field-group" style="margin:0;"><div class="field-label">Kläder & hygien</div><input type="number" id="db-clothes" placeholder="t.ex. 800" min="0" oninput="updateDashBudget()"></div>
+            <div class="field-group" style="margin:0;"><div class="field-label">Aktiva lånekostnader (kr/mån)</div><input type="number" id="db-loans" placeholder="Befintliga amorteringar" min="0" oninput="updateDashBudget()"><div style="font-size:10px;color:var(--ink-muted);margin-top:3px;">Månadskostnad för lån du redan betalar</div></div>
+            <div class="field-group" style="margin:0;"><div class="field-label">Övrigt</div><input type="number" id="db-other" placeholder="t.ex. 500" min="0" oninput="updateDashBudget()"></div>
+          </div>
+        </div>
+        <div id="db-result" style="display:none;margin-top:16px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
+            <div style="background:var(--surface);border-radius:var(--radius-sm);padding:14px;text-align:center;"><div style="font-size:18px;font-weight:700;" id="db-total-income">—</div><div style="font-size:10px;color:var(--ink-muted);text-transform:uppercase;margin-top:3px;">Inkomst</div></div>
+            <div style="background:var(--surface);border-radius:var(--radius-sm);padding:14px;text-align:center;"><div style="font-size:18px;font-weight:700;" id="db-total-exp">—</div><div style="font-size:10px;color:var(--ink-muted);text-transform:uppercase;margin-top:3px;">Utgifter</div></div>
+            <div style="background:var(--teal-light);border-radius:var(--radius-sm);padding:14px;text-align:center;"><div style="font-size:18px;font-weight:700;color:var(--teal);" id="db-left-val">—</div><div style="font-size:10px;color:var(--teal);text-transform:uppercase;margin-top:3px;">Kvar</div></div>
+          </div>
+          <div id="db-budget-msg" style="font-size:13px;color:var(--ink-muted);margin-bottom:12px;padding:12px 14px;background:var(--surface);border-radius:var(--radius-sm);line-height:1.6;"></div>
+          <div id="db-deficit-msg" style="display:none;background:var(--amber-light);border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;color:var(--amber-dark);margin-bottom:12px;"></div>
+          <button class="btn btn-teal" id="db-next-btn" style="display:none;" onclick="switchTab('debts')">Lägg till dina skulder →</button>
+        </div>
+      </div><!-- slut formulär -->
+
+    </div><!-- slut grid -->
   </div>
 
-  <div id="view-debts" class="dash-view" style="display:none;">
+<div id="view-debts" class="dash-view" style="display:none;">
     <div id="welcome-banner" style="display:none;background:var(--teal-light);border:1px solid rgba(13,122,95,0.2);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--teal);font-weight:500;"></div>
     <div class="page-title">Dina skulder</div>
-    <div class="page-sub">Lägg till alla skulder för en fullständig bild.</div>
+    <div class="page-sub">Lägg till alla dina skulder — ju mer information du ger, desto träffsäkrare blir din förhandlingsplan.</div>
+    <div style="background:var(--teal-light);border-radius:var(--radius);padding:20px 22px;border:1px solid rgba(13,122,95,0.12);margin-bottom:24px;">
+      <div style="font-size:11px;font-weight:600;color:var(--teal);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Steg 2 av 3</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:18px;color:var(--ink);margin-bottom:10px;line-height:1.3;">Lägg in alla dina skulder</div>
+      <div style="font-size:13px;color:var(--ink-soft);line-height:1.7;">
+        Lägg in varje skuld separat med det totala saldot på brevet. Vet du vem skulden är hos (t.ex. Intrum eller Svea) — fyll i det. <strong style="color:var(--ink);">Inkassodatum och ursprungsbelopp</strong> hjälper oss beräkna hur stor chansen är att förhandla ned skulden.
+      </div>
+    </div>
     <div class="progress-wrap">
       <div class="progress-bg"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
       <div class="progress-label" id="prog-label">0 skulder tillagda</div>
@@ -1027,13 +1042,13 @@
       </div>
       <div id="add-success" style="display:none;font-size:12px;color:var(--teal);font-weight:500;margin-top:8px;text-align:center;animation:fadeUp 0.3s ease both;">✓ Skuld tillagd!</div>
     </div>
-    <div claclass="total-summary" id="total-box" style="display:none;"></div>
-    <div id="freedom-date-card" style="display:none;background:var(--teal-light);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:12px;">
-      <div style="font-size:11px;color:var(--teal);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">Skuldfri</div>
-      <div style="font-family:'DM Serif Display',serif;font-size:24px;color:var(--teal);letter-spacing:-0.5px;" id="freedom-date-val">—</div>
-      <div style="font-size:11px;color:var(--teal);opacity:0.8;margin-top:2px;" id="freedom-date-months"></div>
+    <div class="total-summary" id="total-box" style="display:none;">
+      <span id="tot-debt" style="display:none;"></span>
+      <span id="tot-pay" style="display:none;"></span>
+      <span id="tot-date" style="display:none;"></span>
     </div>
-    <button class="btn btn-teal" id="to-strat-btn" style="display:none;" onclick="switchTab('ackord')">Se min plan →</button>
+
+    <button class="btn btn-teal" id="to-strat-btn" style="display:none;" onclick="goToMyPlan()">Se min plan →</button>
 
   </div>
 
@@ -1044,7 +1059,7 @@
       <div class="page-title" style="margin-bottom:0;">Min plan</div>
       <button onclick="switchTab('debts')" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--ink-muted);font-family:inherit;padding:0;">← Mina skulder</button>
     </div>
-    <div class="page-sub">Kontrollera att uppgifterna stämmer — vi tar sedan fram din förhandlingsplan.</div>
+    <div class="page-sub">Din förhandlingsplan baserad på dina skulder och din budget.</div>
     <div id="ack-budget-info" style="display:none;background:var(--teal-light);border-radius:var(--radius-sm);padding:10px 14px;margin-top:12px;font-size:13px;color:var(--teal);">
       Budget från steg 1: <strong id="ack-budget-val">—</strong> kr/mån tillgängligt för skulder (60% av överskott)
     </div>
@@ -1313,6 +1328,12 @@
         <div class="field-error" id="err-email">Ange en giltig e-postadress</div>
       </div>
 
+      <div class="field-group">
+        <div class="field-label">Lösenord</div>
+        <input type="password" id="reg-password" placeholder="Minst 6 tecken" oninput="checkPwStrength(this.value)">
+        <div class="field-error" id="err-password">Lösenordet måste vara minst 6 tecken</div>
+        <div id="pw-strength" style="font-size:11px;margin-top:4px;"></div>
+      </div>
       <button class="btn btn-teal" onclick="register()">Skapa konto gratis →</button>
       <div class="auth-divider"><div class="auth-divider-line"></div><div class="auth-divider-text">eller</div><div class="auth-divider-line"></div></div>
       <button class="btn btn-ghost" onclick="showPage('login')">Logga in på befintligt konto</button>
@@ -1333,6 +1354,11 @@
         <input type="email" id="log-email" placeholder="din@email.se" onkeydown="if(event.key==='Enter')login()">
         <div id="err-log-email" class="field-error">Ange en giltig e-postadress</div>
       </div>
+      <div class="field-group">
+        <div class="field-label">Lösenord</div>
+        <input type="password" id="log-password" placeholder="Ditt lösenord" onkeydown="if(event.key==='Enter')login()">
+        <div id="err-log-password" class="field-error">Fel lösenord</div>
+      </div>
       <button class="btn btn-dark" style="width:100%;height:44px;font-size:15px;" onclick="login()">Logga in →</button>
       <div style="text-align:center;margin-top:16px;">
         <span style="font-size:13px;color:var(--ink-muted);">Inget konto? </span>
@@ -1343,6 +1369,17 @@
 </div>
 
 <script>
+const COLORS = ['#0d7a5f','#7f77dd','#c97a1a','#c94a2e','#1aab84','#3a86c8'];
+const MN = ['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'];
+let debts = [], strategy = 'avalanche', premiumOn = false, user = null, selType = {name:'Annat',rate:18};
+
+function saveState() {
+  try {
+    localStorage.setItem('sp_debts', JSON.stringify(debts));
+    // Spara budget-fält
+    const budgetKeys = ['db-income','db-benefit','db-housing','db-food','db-transport','db-phone','db-insurance','db-loans','db-clothes','db-other'];
+    const budgetVals = {};
+    budgetKeys.forEach(function(k){ const el=document.getElementById(k); if(el) budgetVals[k]
 const COLORS = ['#0d7a5f','#7f77dd','#c97a1a','#c94a2e','#1aab84','#3a86c8'];
 const MN = ['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'];
 let debts = [], strategy = 'avalanche', premiumOn = false, user = null, selType = {name:'Annat',rate:18};
@@ -1552,15 +1589,38 @@ function showWelcome(name) {
   }, 100);
 }
 function login() {
-  const e=document.getElementById('log-email').value.trim();
-  let ok=true;
+  const e = document.getElementById('log-email').value.trim();
+  const pw = document.getElementById('log-password')?.value || '';
+  let ok = true;
   const errLogEmail = document.getElementById('err-log-email');
+  const errLogPw = document.getElementById('err-log-password');
   const logEmailInput = document.getElementById('log-email');
   if(errLogEmail) errLogEmail.classList.remove('show');
+  if(errLogPw) errLogPw.classList.remove('show');
   if(logEmailInput) logEmailInput.classList.remove('input-error');
   if (!e||!e.includes('@')) { if(errLogEmail) errLogEmail.classList.add('show'); if(logEmailInput) logEmailInput.classList.add('input-error'); ok=false; }
+  if (!pw) { if(errLogPw) errLogPw.classList.add('show'); ok=false; }
   if (!ok) return;
-  user={name:e.split('@')[0],email:e}; saveState(); updateNav(); showWelcome(user.name);
+  // Hämta sparad användare och kontrollera lösenord
+  const savedUser = localStorage.getItem('sp_user');
+  if (savedUser) {
+    try {
+      const su = JSON.parse(savedUser);
+      if (su.email === e && su.pwHash) {
+        const expectedHash = btoa(pw + '_sp_' + e);
+        if (su.pwHash !== expectedHash) {
+          if(errLogPw) errLogPw.classList.add('show');
+          if(errLogPw) errLogPw.textContent = 'Fel lösenord';
+          return;
+        }
+        user = su; saveState(); updateNav(); showWelcome(user.name); return;
+      }
+    } catch(err) {}
+  }
+  // Inget konto hittat — skapa automatiskt
+  const pwHash = btoa(pw + '_sp_' + e);
+  user = {name:e.split('@')[0], email:e, pwHash:pwHash};
+  saveState(); updateNav(); showWelcome(user.name);
 }
 function logout() { user=null; saveState(); updateNav(); showPage('home'); }
 function toggleMobileMenu() {
@@ -1602,7 +1662,7 @@ function addDebt() {
     return;
   }
   const mr=rate/100/12;
-  if (!pay||pay<=0) pay=Math.max(Math.round(amt*mr*1.15+50),100);
+  let pay = Math.max(Math.round(amt*mr*1.15+50), 100);
   const principal = parseFloat(document.getElementById('add-principal')?.value) || amt;
   const creditorVal = (document.getElementById('add-creditor')?.value||'').trim();
   const inkassoDatum = document.getElementById('add-inkasso-date')?.value || '';
@@ -1617,6 +1677,12 @@ function addDebt() {
   if (addPrincipal) addPrincipal.value='';
   document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('selected'));
   selType={name:'Annat',rate:18};
+  const credEl = document.getElementById('add-creditor');
+  if (credEl) credEl.value = '';
+  const dateEl = document.getElementById('add-inkasso-date');
+  if (dateEl) dateEl.value = '';
+  addDebtStatus = null;
+  document.querySelectorAll('#add-status-inkasso, #add-status-BF').forEach(function(b){ b.classList.remove('active'); });
   const succ = document.getElementById('add-success');
   if (succ) {
     succ.style.display='block';
@@ -1631,26 +1697,89 @@ function startEditDebt(id) {
   if (!d) return;
   const item = document.querySelector('.debt-item[data-id="'+id+'"]');
   if (!item) return;
-  // Ersätt debt-item med edit-formulär
   const form = document.createElement('div');
   form.className = 'edit-form';
-  form.innerHTML =
-    '<div class="add-form-title" style="font-size:13px;margin-bottom:10px;">Redigera skuld</div>' +
-    '<div class="edit-form-row">' +
-      '<div class="field-group" style="margin:0;"><div class="field-label">Belopp (kr)</div>' +
-        '<input type="number" id="edit-amt" value="'+d.amount+'" min="0"></div>' +
-      '<div class="field-group" style="margin:0;"><div class="field-label">Ränta per år (%)</div>' +
-        '<input type="number" id="edit-rate" value="'+d.rate+'" min="0" max="100" step="0.1"></div>' +
-      '<div class="field-group" style="margin:0;"><div class="field-label">Betalning/mån (kr)</div>' +
-        '<input type="number" id="edit-pay" value="'+d.payment+'" min="0"></div>' +
-    '</div>' +
-    '<div class="edit-form-actions">' +
-      '<button class="btn btn-teal" id="edit-save-btn" style="height:38px;font-size:13px;flex:1;">Spara</button>' +
-      '<button class="btn btn-ghost" id="edit-cancel-btn" style="height:38px;font-size:13px;width:auto;padding:0 16px;">Avbryt</button>' +
-    '</div>';
+  const credVal = d.creditor || '';
+  const dueDateVal = d.dueDate || '';
+  const principalVal = (d.principal && d.principal !== d.amount) ? d.principal : '';
+
+  const titleDiv = document.createElement('div');
+  titleDiv.className = 'add-form-title';
+  titleDiv.style.cssText = 'font-size:13px;margin-bottom:12px;';
+  titleDiv.textContent = 'Redigera skuld';
+
+  const row1 = document.createElement('div');
+  row1.className = 'edit-form-row';
+
+  function makeField(label, type, id, value, placeholder) {
+    const wrap = document.createElement('div');
+    wrap.className = 'field-group';
+    wrap.style.margin = '0';
+    const lbl = document.createElement('div');
+    lbl.className = 'field-label';
+    lbl.textContent = label;
+    const inp = document.createElement('input');
+    inp.type = type; inp.id = id;
+    if (value !== undefined && value !== null) inp.value = value;
+    if (placeholder) inp.placeholder = placeholder;
+    if (type === 'number') { inp.min = '0'; }
+    wrap.appendChild(lbl); wrap.appendChild(inp);
+    return wrap;
+  }
+
+  row1.appendChild(makeField('Totalt saldo (kr)', 'number', 'edit-amt', d.amount));
+  row1.appendChild(makeField('Ursprungsbelopp (kr)', 'number', 'edit-principal', principalVal, 'Kapitalbelopp'));
+  row1.appendChild(makeField('Ränta per år (%)', 'number', 'edit-rate', d.rate));
+
+  const row2 = document.createElement('div');
+  row2.className = 'edit-form-row';
+  row2.style.marginTop = '8px';
+  row2.appendChild(makeField('Vem är skulden hos?', 'text', 'edit-creditor', credVal, 't.ex. Intrum Justitia AB'));
+  row2.appendChild(makeField('Inkassodatum', 'date', 'edit-duedate', dueDateVal));
+
+  const statusWrap = document.createElement('div');
+  statusWrap.className = 'field-group';
+  statusWrap.style.marginTop = '8px';
+  const statusLbl = document.createElement('div');
+  statusLbl.className = 'field-label';
+  statusLbl.textContent = 'Var befinner sig skulden?';
+  const statusRow = document.createElement('div');
+  statusRow.style.cssText = 'display:flex;gap:8px;margin-top:4px;';
+  const btnInk = document.createElement('button');
+  btnInk.className = 'ack-status-pill' + (d.status === 'inkasso' ? ' active' : '');
+  btnInk.id = 'edit-status-inkasso';
+  btnInk.textContent = 'Hos inkassobolag';
+  const btnBF = document.createElement('button');
+  btnBF.className = 'ack-status-pill' + (d.status === 'BF' ? ' active' : '');
+  btnBF.id = 'edit-status-BF';
+  btnBF.textContent = 'Hos Kronofogden';
+  [btnInk, btnBF].forEach(function(btn){
+    btn.addEventListener('click', function(){
+      btnInk.classList.remove('active'); btnBF.classList.remove('active');
+      btn.classList.add('active');
+    });
+  });
+  statusRow.appendChild(btnInk); statusRow.appendChild(btnBF);
+  statusWrap.appendChild(statusLbl); statusWrap.appendChild(statusRow);
+
+  const actions = document.createElement('div');
+  actions.className = 'edit-form-actions';
+  actions.style.marginTop = '12px';
+  const saveBtn = document.createElement('button');
+  saveBtn.className = 'btn btn-teal';
+  saveBtn.style.cssText = 'height:38px;font-size:13px;flex:1;';
+  saveBtn.textContent = 'Spara';
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'btn btn-ghost';
+  cancelBtn.style.cssText = 'height:38px;font-size:13px;width:auto;padding:0 16px;';
+  cancelBtn.textContent = 'Avbryt';
+  actions.appendChild(saveBtn); actions.appendChild(cancelBtn);
+
+  form.appendChild(titleDiv); form.appendChild(row1); form.appendChild(row2);
+  form.appendChild(statusWrap); form.appendChild(actions);
   item.replaceWith(form);
-  form.querySelector('#edit-save-btn').addEventListener('click', function() { saveEditDebt(id, form); });
-  form.querySelector('#edit-cancel-btn').addEventListener('click', function() { renderAll(); });
+  saveBtn.addEventListener('click', function(){ saveEditDebt(id, form); });
+  cancelBtn.addEventListener('click', function(){ renderAll(); });
   form.querySelector('#edit-amt').focus();
 }
 
@@ -1659,11 +1788,24 @@ function saveEditDebt(id, form) {
   if (!d) return;
   const amt = parseFloat(form.querySelector('#edit-amt').value);
   const rate = parseFloat(form.querySelector('#edit-rate').value) || 0;
-  const pay = parseFloat(form.querySelector('#edit-pay').value) || 0;
+  const principalEl = form.querySelector('#edit-principal');
+  const principal = principalEl ? (parseFloat(principalEl.value)||amt) : amt;
+  const creditorEl = form.querySelector('#edit-creditor');
+  const duedateEl = form.querySelector('#edit-duedate');
+  const statusInkasso = form.querySelector('#edit-status-inkasso');
   if (!amt || amt <= 0) { showNotice('Ange ett giltigt belopp.'); return; }
   d.amount = amt;
   d.rate = rate;
-  d.payment = pay;
+  d.payment = Math.max(Math.round(amt*(rate/100/12)*1.15+50), 100);
+  d.principal = principal;
+  if (creditorEl) d.creditor = creditorEl.value.trim();
+  if (duedateEl && duedateEl.value) {
+    d.dueDate = duedateEl.value;
+    const parts = duedateEl.value.split('-');
+    const due = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+    d.ageMonths = Math.max(0, Math.floor((new Date()-due)/(1000*60*60*24*30.44)));
+  }
+  if (statusInkasso) d.status = statusInkasso.classList.contains('active') ? 'inkasso' : 'BF';
   saveState();
   renderAll();
   showNotice('Skuld uppdaterad!', 'success');
@@ -1719,19 +1861,6 @@ function renderAll() {
   const maxM=Math.max(...debts.map(d=>{const r=freeDate(d.amount,d.rate,d.payment);return r?r.months:600;}));
   document.getElementById('total-box').style.display='block';
   document.getElementById('to-strat-btn').style.display='block';
-  // Visa skuldfrihetsdatum
-  const fdCard = document.getElementById('freedom-date-card');
-  const fdVal = document.getElementById('freedom-date-val');
-  const fdMonths = document.getElementById('freedom-date-months');
-  if (fdCard && fdVal) {
-    const maxMonths = Math.max(...debts.map(d => { const r=freeDate(d.amount,d.rate,d.payment); return r?r.months:0; }));
-    if (maxMonths > 0) {
-      fdCard.style.display = 'block';
-      fdVal.textContent = toDate(maxMonths);
-      if (fdMonths) fdMonths.textContent = maxMonths + ' månader kvar';
-    }
-  }
-
   document.getElementById('tot-debt').textContent=fmt(totDebt)+' kr';
   document.getElementById('tot-pay').textContent=fmt(totPay)+' kr/mån';
   document.getElementById('tot-date').textContent=maxM<600?toDate(maxM):'—';
@@ -2010,7 +2139,7 @@ function renderAckManualList() {
   const btn = document.getElementById('ack-manual-submit');
   if (!list) return;
   if (ackDebts.length === 0) {
-    list.innerHTML = '<div style="font-size:13px;color:var(--ink-muted);text-align:center;padding:20px;">Inga skulder importerade. Gå till Mina skulder och lägg till dina skulder.</div>';
+    list.innerHTML = '<div style="text-align:center;padding:30px 20px;"><div style="font-size:32px;margin-bottom:12px;">←</div><div style="font-size:15px;font-weight:500;color:var(--ink);margin-bottom:6px;">Inga skulder tillagda än</div><div style="font-size:13px;color:var(--ink-muted);">Gå till <button onclick="switchTab(\"debts\")" style="background:none;border:none;color:var(--teal);cursor:pointer;font-size:13px;text-decoration:underline;padding:0;">Mina skulder</button> och lägg till dina skulder först.</div></div>';
     if (btn) btn.style.display = 'none';
     return;
   }
@@ -3247,16 +3376,39 @@ function hideAddCreditor() {
 function register() {
   const n = document.getElementById('reg-name')?.value.trim() || '';
   const e = document.getElementById('reg-email')?.value.trim() || '';
+  const pw = document.getElementById('reg-password')?.value || '';
   const errName = document.getElementById('err-name');
   const errEmail = document.getElementById('err-email');
-  if (errName) errName.classList.remove('show');
-  if (errEmail) errEmail.classList.remove('show');
+  const errPw = document.getElementById('err-password');
+  [errName,errEmail,errPw].forEach(function(el){ if(el) el.classList.remove('show'); });
   let ok = true;
   if (!n) { if(errName) errName.classList.add('show'); ok=false; }
   if (!e||!e.includes('@')) { if(errEmail) errEmail.classList.add('show'); ok=false; }
+  if (!pw||pw.length<6) { if(errPw) errPw.classList.add('show'); ok=false; }
   if (!ok) return;
-  user = {name:n, email:e}; saveState(); updateNav(); showWelcome(n);
+  // Spara lösenord hashat (enkel hash för localStorage)
+  const pwHash = btoa(pw + '_sp_' + e);
+  user = {name:n, email:e, pwHash:pwHash};
+  saveState(); updateNav(); showWelcome(n);
 }
+
+
+function goToMyPlan() {
+  showPage('debts');
+  setTimeout(function(){
+    switchTab('ackord');
+    // Importera skulder från Mina skulder
+    autoImportToAckord();
+    // Kör analysen direkt — använd det vi har
+    // Om dueDate saknas används ageMonths från Mina skulder, eller 12 mån som default
+    setTimeout(function(){
+      document.getElementById('ack-step-upload').style.display = 'none';
+      document.getElementById('ack-step-results').style.display = 'block';
+      showAckordResultsWithBudget(ackDebts, null, 0, dashBudgetMonthly);
+    }, 100);
+  }, 50);
+}
+
 
 </script>
 </body>
