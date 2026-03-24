@@ -1369,20 +1369,12 @@
 </div>
 
 <script>
+
+
 const COLORS = ['#0d7a5f','#7f77dd','#c97a1a','#c94a2e','#1aab84','#3a86c8'];
 const MN = ['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'];
 let debts = [], strategy = 'avalanche', premiumOn = false, user = null, selType = {name:'Annat',rate:18};
 
-function saveState() {
-  try {
-    localStorage.setItem('sp_debts', JSON.stringify(debts));
-    // Spara budget-fält
-    const budgetKeys = ['db-income','db-benefit','db-housing','db-food','db-transport','db-phone','db-insurance','db-loans','db-clothes','db-other'];
-    const budgetVals = {};
-    budgetKeys.forEach(function(k){ const el=document.getElementById(k); if(el) budgetVals[k]
-const COLORS = ['#0d7a5f','#7f77dd','#c97a1a','#c94a2e','#1aab84','#3a86c8'];
-const MN = ['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'];
-let debts = [], strategy = 'avalanche', premiumOn = false, user = null, selType = {name:'Annat',rate:18};
 
 function saveState() {
   try {
@@ -3408,6 +3400,8 @@ function goToMyPlan() {
     }, 100);
   }, 50);
 }
+
+
 
 
 </script>
