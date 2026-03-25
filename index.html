@@ -432,7 +432,9 @@
   .plan-stat-val { font-family: 'DM Serif Display', serif; font-size: 22px; letter-spacing: -0.5px; color: var(--ink); }
   .plan-stat-val.green { color: var(--teal); }
   .plan-stat-lbl { font-size: 10px; color: var(--ink-muted); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.04em; }
-  .plan-item { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 10px; }
+  .plan-item { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 10px; transition: border-color 0.15s; }
+  .plan-item:hover { border-color: var(--teal-mid); }
+  .plan-details { border-top: 1px solid var(--border); margin-top: 12px; padding-top: 12px; }
   .plan-item-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
   .plan-priority { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; color: var(--white); }
   .plan-item-name { font-size: 14px; font-weight: 500; color: var(--ink); flex: 1; }
@@ -1091,8 +1093,14 @@
       <div class="uc-parsed-banner" id="uc-banner"></div>
 
       <!-- SAMMANFATTNING -->
+      <div id="plan-budget-notice" style="display:none;background:var(--amber-light);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--amber-dark);">
+        💡 <strong>Fyll i din budget</strong> (steg 1) för att få en prioriterad plan baserad på vad du faktiskt kan betala varje månad.
+        <button onclick="switchTab('budget')" style="background:none;border:none;color:var(--amber-dark);text-decoration:underline;cursor:pointer;font-size:13px;font-family:inherit;padding:0;margin-left:4px;">Gå till budget →</button>
+      </div>
+      <div id="selected-plan-badge" style="display:none;background:var(--teal-light);color:var(--teal);font-size:12px;font-weight:600;padding:6px 14px;border-radius:99px;margin-bottom:14px;"></div>
       <div class="plan-summary" id="plan-summary-bar" style="display:none;margin-bottom:24px;">
         <div class="plan-stat"><div class="plan-stat-val" id="plan-total-debt">—</div><div class="plan-stat-lbl">Total skuld</div></div>
+        <div class="plan-stat" id="plan-budget-stat" style="display:none;"><div class="plan-stat-val green" id="plan-budget-val">—</div><div class="plan-stat-lbl">Budget/mån</div></div>
         <div class="plan-stat"><div class="plan-stat-val green" id="plan-total-saving">—</div><div class="plan-stat-lbl">Potentiell besparing</div></div>
         <div class="plan-stat"><div class="plan-stat-val green" id="plan-free-date">—</div><div class="plan-stat-lbl">Skuldfri</div></div>
       </div>
@@ -1369,8 +1377,6 @@
 </div>
 
 <script>
-
-
 const COLORS = ['#0d7a5f','#7f77dd','#c97a1a','#c94a2e','#1aab84','#3a86c8'];
 const MN = ['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'];
 let debts = [], strategy = 'avalanche', premiumOn = false, user = null, selType = {name:'Annat',rate:18};
@@ -1404,16 +1410,7 @@ function loadState() {
     if (p) premiumOn = p === '1' ? 3 : false;
     const u = localStorage.getItem('sp_user');
     if (u) { user = JSON.parse(u); }
-    const budgetVals = localStorage.getItem('sp_budget_vals');
-    if (budgetVals) {
-      try {
-        const bv = JSON.parse(budgetVals);
-        Object.keys(bv).forEach(function(k){
-          const el = document.getElementById(k);
-          if (el && bv[k]) { el.value = bv[k]; el.classList.add('has-value'); }
-        });
-      } catch(e) {}
-    }
+    // Budget-värden laddas i DOMContentLoaded när DOM är redo
     const dbBudget = localStorage.getItem('sp_dash_budget');
     if (dbBudget) dashBudgetMonthly = parseFloat(dbBudget) || 0;
     const ad = localStorage.getItem('sp_ack_debts');
@@ -1465,10 +1462,21 @@ document.addEventListener('DOMContentLoaded', function() {
   if (user) {
     showPage('debts');
     setTimeout(function(){
+      // Återfyll budget-fält från localStorage
+      try {
+        const savedBudget = localStorage.getItem('sp_budget_vals');
+        if (savedBudget) {
+          const bv = JSON.parse(savedBudget);
+          Object.keys(bv).forEach(function(k){
+            const el = document.getElementById(k);
+            if (el && bv[k]) { el.value = bv[k]; el.classList.add('has-value'); }
+          });
+        }
+      } catch(e) {}
       switchTab('budget');
-      // Kör updateDashBudget så budget-innehållet renderas
+      // Kör updateDashBudget nu när fälten är ifyllda
       if (typeof updateDashBudget === 'function') updateDashBudget();
-      // Rendera skulder om de finns
+      // Rendera skulder
       if (debts.length) renderAll();
     }, 100);
   } else {
@@ -1664,15 +1672,13 @@ function addDebt() {
     ageMonths:ageFromInkasso,
     color:COLORS[debts.length%COLORS.length],age:ageFromInkasso}); saveState();
   renderAll();
-  document.getElementById('add-amt').value='';
-  const addPrincipal = document.getElementById('add-principal');
-  if (addPrincipal) addPrincipal.value='';
+  // Rensa alla fält
+  ['add-amt','add-principal','add-rate','add-creditor','add-inkasso-date'].forEach(function(id){
+    const el = document.getElementById(id);
+    if (el) { el.value = ''; el.classList.remove('has-value','input-error'); }
+  });
   document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('selected'));
   selType={name:'Annat',rate:18};
-  const credEl = document.getElementById('add-creditor');
-  if (credEl) credEl.value = '';
-  const dateEl = document.getElementById('add-inkasso-date');
-  if (dateEl) dateEl.value = '';
   addDebtStatus = null;
   document.querySelectorAll('#add-status-inkasso, #add-status-BF').forEach(function(b){ b.classList.remove('active'); });
   const succ = document.getElementById('add-success');
@@ -1868,18 +1874,8 @@ function switchTab(name) {
   });
   if (name==='debts') renderAll();
   if (name==='ackord') {
-    const stepUpload = document.getElementById('ack-step-upload');
-    const stepResults = document.getElementById('ack-step-results');
-    const stepParsing = document.getElementById('ack-step-parsing');
-    if (stepResults && stepResults.style.display === 'block') {
-      // Håll kvar resultaten
-    } else {
-      if (stepUpload) stepUpload.style.display = 'block';
-      if (stepResults) stepResults.style.display = 'none';
-      if (stepParsing) stepParsing.style.display = 'none';
-    }
+    // Steg-synlighet hanteras av goToMyPlan — switchTab rör dem inte
     renderAckord();
-    autoImportToAckord();
     // Visa budget-info
     const ackBudgetInfo = document.getElementById('ack-budget-info');
     const ackBudgetVal = document.getElementById('ack-budget-val');
@@ -2495,7 +2491,7 @@ function buildHolisticPlan(debts, lumpSum, monthlyBudget) {
     const age = d.ageMonths || 0;
     const rate = d.rate || 0;
     const isPublic = d.isPublic || (d.name||'').toLowerCase().includes('csn');
-    const isYoungLow = age < 6 && rate < 10;
+    const isYoungLow = age < 18;
     const kfmYes = d.kfmDecision === 'yes';
     const qualCheck = ackordChanceAdvanced(d);
     const offerCalc = calcOfferAmount(d);
@@ -2512,13 +2508,13 @@ function buildHolisticPlan(debts, lumpSum, monthlyBudget) {
       badge = 'plan-action-red';
       desc = 'Inkassobolaget väntar på KFM-utslag — ingen ackordsuppgörelse möjlig nu. Du har två alternativ: (1) Bestrida föreläggandet hos KFM för att stoppa processen och få mer tid, eller (2) Avvakta utslaget och förhandla om avbetalningsplan efteråt. Kontakta Kronofogden på 0771-73 73 00.';
     } else if (isPublic || qualCheck.recommendation === 'public') {
-      action = 'Betala i sin helhet';
-      badge = 'plan-action-gray';
+      action = 'Förhandla avbetalningsplan';
+      badge = 'plan-action-amber';
       desc = 'Offentlig fordran — ackord är inte möjligt. Kontakta dem för betalningsplan eller anstånd.';
     } else if (isYoungLow && !kfmYes) {
       action = 'Betala i sin helhet';
       badge = 'plan-action-gray';
-      desc = 'Skulden är för ny och ränteandelen för låg för att ackord ska löna sig. Betala av normalt.';
+      desc = 'Skulden är ' + age + ' månader gammal. Ring fordringsägaren och begär en avbetalningsplan med fryst ränta — det stoppar skulden från att växa och ger dig kontroll. Be dem bekräfta skriftligt att räntan fryses och att inget ytterligare tillkommer utöver den överenskomna planen.';
       const mr = rate/100/12;
       const pay = d.payment || Math.max(d.amount * mr * 1.1, 200);
       months = mr > 0 ? Math.ceil(Math.log(pay/(pay-d.amount*mr))/Math.log(1+mr)) : Math.ceil(d.amount/pay);
@@ -2584,28 +2580,65 @@ function renderHolisticPlan(parsedDebts, lumpSum, monthlyBudget) {
   // Rendera alltid — även utan betalningsinfo visas ackordspotential per skuld
   if (!lumpSum && !monthlyBudget) {
     if (summaryBar) summaryBar.style.display = 'none';
+    // Visa uppmaning om budget
+    const budgetNotice = document.getElementById('plan-budget-notice');
+    if (budgetNotice) budgetNotice.style.display = 'block';
     // Rendera ändå en förenklad vy utan prioritering
     if (planItems) {
       const COLORS_P = ['#0d7a5f','#1aab84','#c97a1a','#4a3ab7','#c94a2e'];
-      planItems.innerHTML = parsedDebts.map(function(d, i) {
+      planItems.innerHTML = '';
+      parsedDebts.forEach(function(d, i) {
         const age = d.ageMonths || 0;
         const q = ackordChanceAdvanced(d);
         const oPct = offerPct(age, d.status || 'inkasso');
         const offerAmt = Math.round((d.principal || d.amount) * oPct);
         const saving = d.amount - offerAmt;
         const creditor = d.creditor || d.name;
-        return '<div class="plan-item">' +
-          '<div class="plan-item-head">' +
-            '<div class="plan-priority" style="background:'+COLORS_P[i%5]+'">'+(i+1)+'</div>' +
-            '<div style="flex:1;"><div class="plan-item-name">'+sanitize(creditor)+'</div>' +
-            '<div style="font-size:11px;color:var(--ink-muted);">'+(age>0?age+' mån sedan · ':'')+d.status+'</div></div>' +
-            '<div class="plan-item-amount">'+fmt(d.amount)+' kr</div>' +
-          '</div>' +
-          '<div class="plan-action-badge plan-action-teal">Ackordspotential: '+q.label+'</div>' +
-          '<div class="plan-desc">Erbjud ca '+fmt(offerAmt)+' kr som slutbetalning — potentiell besparing '+fmt(saving)+' kr.</div>' +
-          '<div style="font-size:11px;color:var(--ink-muted);margin-top:8px;padding:8px;background:var(--surface);border-radius:var(--radius-sm);">Fyll i dina resurser ovan för en fullständig prioriterad plan.</div>' +
-        '</div>';
-      }).join('');
+
+        const item = document.createElement('div');
+        item.className = 'plan-item';
+        item.style.cursor = 'pointer';
+
+        const head = document.createElement('div');
+        head.className = 'plan-item-head';
+        head.innerHTML =
+          '<div class="plan-priority" style="background:'+COLORS_P[i%5]+'">'+(i+1)+'</div>'+
+          '<div style="flex:1;"><div class="plan-item-name">'+sanitize(creditor)+'</div>'+
+          '<div style="font-size:11px;color:var(--ink-muted);">'+(age>0?age+' mån sedan · ':'')+d.status+'</div></div>'+
+          '<div class="plan-item-amount">'+fmt(d.amount)+' kr</div>'+
+          '<span style="font-size:11px;color:var(--ink-muted);margin-left:12px;">▼</span>';
+
+        const badge = document.createElement('div');
+        badge.className = 'plan-action-badge plan-action-teal';
+        badge.textContent = 'Ackordspotential: ' + q.label;
+
+        const shortDesc = document.createElement('div');
+        shortDesc.style.cssText = 'font-size:13px;color:var(--ink-soft);margin-top:6px;';
+        shortDesc.textContent = 'Erbjud ca ' + fmt(offerAmt) + ' kr som slutbetalning — potentiell besparing ' + fmt(saving) + ' kr.';
+
+        const details = document.createElement('div');
+        details.style.cssText = 'display:none;border-top:1px solid var(--border);margin-top:12px;padding-top:14px;';
+        var explainText = buildExplainText(d, age, offerAmt, q);
+        details.innerHTML = '<div style="font-size:13px;color:var(--ink-soft);line-height:1.7;padding:12px;background:var(--surface);border-radius:var(--radius-sm);">'+
+          '<strong style="color:var(--ink);">Hur vi kom fram till detta:</strong> ' + explainText + '</div>'+
+          (!premiumOn ? '<div style="text-align:center;padding:14px;background:var(--surface);border-radius:var(--radius-sm);margin-top:10px;font-size:13px;color:var(--ink-muted);">🔒 Välj en plan nedan för steg-för-steg-guide och samtalsmanus</div>' : '');
+
+        (function(el, det, arrow) {
+          el.addEventListener('click', function(e) {
+            if (e.target.tagName === 'BUTTON') return;
+            var open = det.style.display !== 'none';
+            det.style.display = open ? 'none' : 'block';
+            arrow.textContent = open ? '▼' : '▲';
+            el.style.borderColor = open ? '' : 'var(--teal-mid)';
+          });
+        })(item, details, head.querySelector('span'));
+
+        item.appendChild(head);
+        item.appendChild(badge);
+        item.appendChild(shortDesc);
+        item.appendChild(details);
+        planItems.appendChild(item);
+      });
       window._currentPlan = parsedDebts.map(function(d,i){
         return {debt:d, action:'Ackord mot direktbetalning', badge:'plan-action-teal',
           desc:'', payNow:Math.round((d.principal||d.amount)*offerPct(d.ageMonths||0,d.status||'inkasso')),
@@ -2622,29 +2655,132 @@ function renderHolisticPlan(parsedDebts, lumpSum, monthlyBudget) {
   document.getElementById('plan-free-date').textContent = freeDateStr;
   window._currentPlan = plan;
 
-  if (planItems) planItems.innerHTML = plan.map(p => {
-    const creditorInfo = p.debt.creditor || p.debt.name;
-    return '<div class="plan-item">' +
-      '<div class="plan-item-head">' +
+  if (planItems) {
+    planItems.innerHTML = '';
+    plan.forEach(function(p, pidx) {
+      var creditorInfo = p.debt.creditor || p.debt.name;
+      var age = p.debt.ageMonths || 0;
+      var offerAmtRaw = p.payNow > 0 ? fmt(p.payNow) : (p.monthlyPay > 0 ? fmt(p.monthlyPay) : '—');
+      var isAckord = p.action.indexOf('Ackord') >= 0 || p.action.indexOf('Direktbetalning') >= 0;
+      var isLocked = p.action === 'Bestrida eller avvakta' || p.action === 'Betala i sin helhet';
+
+      var item = document.createElement('div');
+      item.className = 'plan-item';
+      item.style.cursor = 'pointer';
+
+      // HEAD - alltid synlig
+      var head = document.createElement('div');
+      head.className = 'plan-item-head';
+      head.innerHTML =
         '<div class="plan-priority" style="background:' + p.color + '">' + p.priority + '</div>' +
         '<div style="flex:1;">' +
           '<div class="plan-item-name">' + sanitize(creditorInfo) + '</div>' +
           '<div style="font-size:11px;color:var(--ink-muted);margin-top:1px;">' +
-            (p.debt.ageMonths > 0 ? p.debt.ageMonths + ' mån sedan · ' : '') +
-            (p.debt.status ? p.debt.status : 'inkasso') +
+            (age > 0 ? age + ' mån sedan · ' : '') + (p.debt.status || 'inkasso') +
           '</div>' +
         '</div>' +
         '<div class="plan-item-amount">' + fmt(p.debt.amount) + ' kr</div>' +
-      '</div>' +
-      '<div class="plan-action-badge ' + p.badge + '">' + p.action + '</div>' +
-      '<div class="plan-desc">' + p.desc + '</div>' +
-      '<div class="plan-numbers">' +
-        (p.payNow > 0 ? '<div class="plan-num saving"><strong>' + fmt(p.payNow) + ' kr</strong> betala nu</div>' : '') +
-        (p.monthlyPay > 0 ? '<div class="plan-num"><strong>' + fmt(p.monthlyPay) + ' kr/mån</strong>' + (p.months > 0 ? ' · ' + p.months + ' mån' : '') + '</div>' : '') +
-        (p.saving > 0 ? '<div class="plan-num saving"><strong>−' + fmt(Math.round(p.saving)) + ' kr</strong> besparing</div>' : '') +
-      '</div>' +
-    '</div>';
-  }).join('');
+        '<span style="font-size:11px;color:var(--ink-muted);margin-left:12px;transition:transform 0.2s;display:inline-block;">▼</span>';
+
+      var badge = document.createElement('div');
+      badge.className = 'plan-action-badge ' + p.badge;
+      badge.textContent = p.action;
+
+      // Kort beskrivning synlig utan expand
+      var shortDesc = document.createElement('div');
+      shortDesc.style.cssText = 'font-size:13px;color:var(--ink-soft);margin-top:6px;';
+      var descText = p.desc || '';
+      shortDesc.textContent = descText.length > 100 ? descText.substring(0, 100) + '...' : descText;
+
+      // DETALJER
+      var details = document.createElement('div');
+      details.style.cssText = 'display:none;border-top:1px solid var(--border);margin-top:12px;padding-top:14px;';
+
+      var html = '';
+
+      // Fullständig beskrivning + belopp
+      html += '<div style="font-size:13px;color:var(--ink-soft);line-height:1.7;margin-bottom:12px;padding:12px;background:var(--surface);border-radius:var(--radius-sm);">' +
+        '<strong style="color:var(--ink);">Hur vi kom fram till detta:</strong> ' + p.desc + '</div>';
+
+      if (p.payNow > 0 || p.monthlyPay > 0 || p.saving > 0) {
+        html += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">';
+        if (p.payNow > 0) html += '<div class="plan-num saving"><strong>' + fmt(p.payNow) + ' kr</strong> att betala direkt</div>';
+        if (p.monthlyPay > 0) html += '<div class="plan-num"><strong>' + fmt(p.monthlyPay) + ' kr/mån</strong>' + (p.months > 0 ? ' · ' + p.months + ' mån' : '') + '</div>';
+        if (p.saving > 0) html += '<div class="plan-num saving"><strong>−' + fmt(Math.round(p.saving)) + ' kr</strong> besparing</div>';
+        html += '</div>';
+      }
+
+      // Steg-för-steg (49kr+)
+      if (premiumOn >= 1 && !isLocked) {
+        var steps = isAckord ? [
+          {n:'1',tag:'Samtal',title:'Verifiera att de äger skulden',desc:'Ring och fråga: "Äger ni skulden eller driver ni in den som ombud?" Det avgör vem som kan fatta beslut.'},
+          {n:'2',tag:'Samtal',title:'Be om ackordsansvarig',desc:'Kundtjänst kan inte fatta beslut. Säg: "Jag vill prata med någon som hanterar ackordsuppgörelser."'},
+          {n:'3',tag:'Förhandling',title:'Presentera erbjudandet',desc:'Erbjud ' + offerAmtRaw + ' kr som slutbetalning och fullständig avskrivning av resterande skuld.'},
+          {n:'4',tag:'Dokument',title:'Kräv skriftlig bekräftelse',desc:'Betala aldrig utan skriftligt avtal via e-post.'}
+        ] : [
+          {n:'1',tag:'Samtal',title:'Kontakta ' + sanitize(creditorInfo),desc:'Ring och be om avbetalningsplan på ' + offerAmtRaw + ' kr/mån med fryst ränta.'},
+          {n:'2',tag:'Förhandling',title:'Begär fryst ränta',desc:'Kräv att räntan fryses från datum för överenskommelsen.'},
+          {n:'3',tag:'Dokument',title:'Kräv skriftlig bekräftelse',desc:'Avbetalningsplan och fryst ränta ska bekräftas skriftligt.'}
+        ];
+
+        html += '<div style="background:var(--surface);border-radius:var(--radius-sm);padding:14px;margin-bottom:12px;">' +
+          '<div style="font-size:11px;font-weight:600;color:var(--teal);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px;">Så här gör du</div>';
+        steps.forEach(function(s) {
+          html += '<div style="display:flex;gap:10px;margin-bottom:10px;align-items:flex-start;">' +
+            '<div style="width:22px;height:22px;border-radius:50%;background:var(--teal);color:white;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' + s.n + '</div>' +
+            '<div><div style="font-size:13px;font-weight:500;">' + s.title + '</div>' +
+            '<div style="font-size:12px;color:var(--ink-muted);margin-top:2px;line-height:1.5;">' + s.desc + '</div>' +
+            '<span style="display:inline-block;margin-top:4px;font-size:10px;font-weight:600;color:var(--teal);background:var(--teal-light);padding:2px 8px;border-radius:99px;">' + s.tag + '</span>' +
+            '</div></div>';
+        });
+        html += '</div>';
+      }
+
+      // Samtalsmanus (99kr+)
+      if (premiumOn >= 2 && !isLocked) {
+        var script = getCallScript(isAckord, offerAmtRaw, p.debt.amount, fmt);
+        html += '<div style="background:var(--surface);border-radius:var(--radius-sm);padding:14px;margin-bottom:12px;">' +
+          '<div style="font-size:11px;font-weight:600;color:var(--teal);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Samtalsmanus</div>' +
+          '<div style="font-size:12px;white-space:pre-line;line-height:1.7;font-style:italic;">' + sanitize(script) + '</div></div>';
+      }
+
+      // Brevmall (199kr+)
+      if (premiumOn >= 3 && !isLocked) {
+        var letter = buildLetter(p.debt, p.action, offerAmtRaw);
+        if (!window._planLetters) window._planLetters = [];
+        window._planLetters[pidx] = letter;
+        html += '<div style="background:var(--surface);border-radius:var(--radius-sm);padding:14px;">' +
+          '<div style="font-size:11px;font-weight:600;color:var(--teal);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Brevmall</div>' +
+          '<div style="font-size:12px;white-space:pre-wrap;line-height:1.7;margin-bottom:10px;">' + sanitize(letter) + '</div>' +
+          '<button onclick="event.stopPropagation();copyLetterByIdx(' + pidx + ')" style="background:none;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 14px;font-size:12px;cursor:pointer;">Kopiera →</button>' +
+          '</div>';
+      }
+
+      // Lock (gratis)
+      if (!premiumOn) {
+        html += '<div style="text-align:center;padding:14px;background:var(--surface);border-radius:var(--radius-sm);font-size:13px;color:var(--ink-muted);">🔒 Välj en plan nedan för steg-för-steg-guide och samtalsmanus</div>';
+      }
+
+      details.innerHTML = html;
+
+      // Toggle
+      (function(el, det, arr) {
+        el.addEventListener('click', function(e) {
+          if (e.target.tagName === 'BUTTON') return;
+          var open = det.style.display !== 'none';
+          det.style.display = open ? 'none' : 'block';
+          arr.textContent = open ? '▼' : '▲';
+          el.style.borderColor = open ? '' : 'var(--teal-mid)';
+        });
+      })(item, details, head.querySelector('span'));
+
+      item.appendChild(head);
+      item.appendChild(badge);
+      item.appendChild(shortDesc);
+      item.appendChild(details);
+      planItems.appendChild(item);
+    });
+  }
 }
 
 // ============================================================
@@ -3386,23 +3522,61 @@ function register() {
 
 
 function goToMyPlan() {
-  showPage('debts');
-  setTimeout(function(){
-    switchTab('ackord');
-    // Importera skulder från Mina skulder
-    autoImportToAckord();
-    // Kör analysen direkt — använd det vi har
-    // Om dueDate saknas används ageMonths från Mina skulder, eller 12 mån som default
-    setTimeout(function(){
-      document.getElementById('ack-step-upload').style.display = 'none';
-      document.getElementById('ack-step-results').style.display = 'block';
-      showAckordResultsWithBudget(ackDebts, null, 0, dashBudgetMonthly);
-    }, 100);
-  }, 50);
+  // Dölj upload-steget INNAN switchTab så det aldrig syns
+  const su = document.getElementById('ack-step-upload');
+  const sr = document.getElementById('ack-step-results');
+  if (su) su.style.display = 'none';
+  if (sr) sr.style.display = 'block';
+  // Importera och kör analys
+  autoImportToAckord();
+  switchTab('ackord');
+  showAckordResultsWithBudget(ackDebts, null, 0, dashBudgetMonthly);
 }
 
 
 
+
+
+function getCallScript(isAckord, offerAmtRaw, debtAmount, fmtFn) {
+  const amt = fmtFn(debtAmount);
+  if (isAckord) {
+    return 'Hej, jag heter [namn] och har en skuld registrerad hos er på ' + amt + ' kr. Jag har möjlighet att betala ' + offerAmtRaw + ' kr som engångsbetalning och vill att det accepteras som slutlig reglering inklusive ränta och avgifter. Kan ni fatta det beslutet?\n\nOm de säger nej: "Okej, vilket alternativ har ni — kan jag skicka en skriftlig förfrågan till er ackordsavdelning?"\n\nOm de vill ha mer: "Det är tyvärr det jag kan erbjuda. Alternativet för mig är att ansöka om skuldsanering via Kronofogden."';
+  }
+  return 'Hej, jag heter [namn] och vill upprätta en avbetalningsplan för en skuld på ' + amt + ' kr. Jag kan betala ' + offerAmtRaw + ' kr per månad och vill att räntan fryses. Kan ni bekräfta det skriftligt?';
+}
+
+function buildExplainText(d, age, offerAmt, q) {
+  var pct = Math.round(offerAmt / d.amount * 100);
+  var status = d.status || 'inkasso';
+
+  // Skuld under 6 månader - inget ackord
+  if (age < 6) {
+    return 'Skulden är ' + age + ' månader gammal. Kontakta fordringsägaren direkt och begär en avbetalningsplan med fryst ränta — det stoppar skulden från att växa ytterligare. Ring och säg att du vill betala av skulden och fråga om de kan erbjuda en plan utan tillkommande ränta och avgifter.';
+  }
+
+  // 6-18 månader
+  if (age < 18) {
+    return 'Skulden är ' + age + ' månader gammal. Kontakta fordringsägaren och förhandla en avbetalningsplan med fryst ränta — det är den mest effektiva åtgärden i detta skede. Begär skriftlig bekräftelse på att räntan fryses och att betalningarna räknas av mot kapital.';
+  }
+
+  // BF-status
+  if (status === 'BF') {
+    return 'Skulden befinner sig hos Kronofogden och ett föreläggande har utfärdats. Ackord är inte möjligt i detta läge — borgenären inväntar KFM:s utslag. Du kan bestrida föreläggandet hos KFM, vilket ger mer tid, eller kontakta fordringsägaren för att förhandla en avbetalningsplan.';
+  }
+
+  // 18-36 månader
+  if (age < 36) {
+    return 'Skulden är ' + age + ' månader gammal. Förhandlingsutrymmet börjar öppna sig — upplupen ränta utgör nu en väsentlig del av saldot, och den kan ofta förhandlas ned. Vi bedömer att ett erbjudande på ' + fmt(offerAmt) + ' kr (' + pct + '% av nuvarande saldo) har ' + q.label.toLowerCase() + ' att accepteras.';
+  }
+
+  // 36-60 månader
+  if (age < 60) {
+    return 'Skulden är ' + age + ' månader gammal och befinner sig i ett bra förhandlingsläge. Ju äldre en fordran är, desto starkare är incitamentet för borgenären att avsluta ärendet. Vi bedömer att ett erbjudande på ' + fmt(offerAmt) + ' kr (' + pct + '% av nuvarande saldo) har ' + q.label.toLowerCase() + ' att accepteras.';
+  }
+
+  // 60+ månader
+  return 'Skulden är ' + age + ' månader gammal — ett starkt förhandlingsläge. Gamla fordringar är svåra och kostsamma att driva in, och borgenären har stark anledning att vilja avsluta ärendet. Vi bedömer att ett erbjudande på ' + fmt(offerAmt) + ' kr (' + pct + '% av nuvarande saldo) har ' + q.label.toLowerCase() + ' att accepteras.';
+}
 
 </script>
 </body>
